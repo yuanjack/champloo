@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Champloo!!</title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/js/select2/select2.css" rel="stylesheet">
+    <link href="/css/site.css" rel="stylesheet">
+  </head>
+  <body>
+      <div class="navbar" role="navigation">
+      <div class="container-fluid navbar-snap">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand logo" href="/">Champloo<i>!</i></a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="#">Dashboard</a></li>
+            <li><a href="#">Settings</a></li>
+            <li><a href="#">Profile</a></li>
+            <li><a href="#">Help</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="container-fluid navbar-actions">
+        <div class="navbar-header">
+          <a href="/" class="back">返回</a>
+          <span class="navbar-brand" >系统部署配置</span>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="javascript:void(0)" class="save" id="save"><span class="glyphicon glyphicon-floppy-disk"></span>保存</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+
+    <div id="content" class="container-fluid">
+      <div class="pipeline-wrapper" >
+        <ul class="nav nav-tabs pipeline ui-sortable"  role="tablist" id="stages-tab" >
+          <li class="active">
+              <a href="#stage-baseinfo" class="stage" role="tab" data-toggle="tab">基础配置</a>
+          </li>
+          <li>
+              <a href="#stage-command" class="stage" role="tab" data-toggle="tab">全局命令</a>
+          </li>
+            <li  id="tab-dev" style="display:none">
+                <a href="#stage-development" class="stage" role="tab" data-toggle="tab">开发场景配置</a>
+            </li>
+            <li id="tab-prod" style="display:none">
+                <a href="#stage-production" class="stage" role="tab" data-toggle="tab">产品场景配置</a>
+            </li>
+        </ul>
+      </div>
+
+       <div id="stage-edit-wrapper">
+        <form role="form" class="form-horizontal ">
+
+          <!--baseinfo-->
+          <div class="tab-pane  stage-edit-box active" id="stage-baseinfo">
+            <span id="selected-item-indicator" style="left: 39px;"></span>
+
+            <div class="stage-edit-section">
+              <h3>基本信息</h3>
+              <div class="form-group">
+                <label  class="control-label">系统名称</label>
+                <input id="name" name="name"  type="text" value="{{ .conf.Name }}">
+                <input type="hidden" name="id" value="{{ .conf.Id }}" />
+              </div>
+               <div class="form-group">
+                <label  class="control-label">场景</label>
+               <input id="ckdevelopment" type="checkbox" name="dev-stage"  {{if  .conf.EnableDevStage }} checked="checked" {{end}} rel="tab-dev"><label for="ckdevelopment" class="checkbox-label">开发</label>
+               <input id="ckproducttion" type="checkbox"  name="prod-stage"   {{if .conf.EnableProdStage }} checked="checked" {{end}} rel="tab-prod"><label for="ckproducttion" class="checkbox-label">产品</label>
+                <span class="tip">选择场景后，发布的目录结构会改变</span>
+              </div>
+              <div class="form-group">
+                <label class="control-label">部署方式</label>
+               <input id="rd-checkout" type="radio" value="checkout" name="way"  {{if eq  .conf.Way "checkout" }} checked="checked" {{end}}><label for="rd-checkout" class="checkbox-label">checkout</label>
+               <input id="rd-copy" type="radio" value="copy" name="way" {{if eq  .conf.Way "copy" }} checked="checked" {{end}}><label for="rd-copy" class="checkbox-label">copy</label>
+               <input id="rd-update" type="radio" value="update" name="way" {{if eq  .conf.Way "update" }} checked="checked" {{end}}><label for="rd-update" class="checkbox-label">update</label>
+                <span class="tip">checkout:每次checkout一份新代码，copy:复制旧的代码再checkout，update:在原部署目录直接update</span>
+              </div>
+              <div class="form-group">
+                <label class="control-label">部署路径</label>
+                <input name="path" type="text"  style="width:300px" value="{{ .conf.Path }}">
+                <span class="tip">请填写绝对路径，如/data/wwwroot/example/</span>
+              </div>
+              <div class="form-group">
+                <label class="control-label">共享目录</label>
+                <textarea name="shared" type="text"  style="width:300px;" rows="4">{{ .conf.Shared }}</textarea>
+                <span class="tip">变量$path代表当前部署目录，如$path/App/tpl/</span>
+              </div>
+              <div class="form-group">
+                <label class="control-label">保留版本数目</label>
+                <input name="num" type="text"  value="{{ .conf.BackupNum }}">
+                <span class="tip">超出指定数目的旧版本将会被删除</span>
+              </div>
+
+            </div>
+
+            <div class="stage-edit-section">
+            <h3>版本信息</h3>
+            <div class="form-group">
+              <label class="control-label">版本库路径</label>
+              <input name="repo" type="text"   style="width:300px" value="{{ .conf.Repo }}">
+              <span class="tip">Git 或 SVN 源代码http获取路径地址，请确保服务器已正确安装的Git或SVN程序</span>
+            </div>
+            <div class="form-group">
+              <label class="control-label">验证用户名</label>
+              <input name="username" type="text" value="{{ .conf.UserName }}">
+              <span class="tip">SVN版本库登录帐号，Git不需要</span>
+            </div>
+            <div class="form-group">
+              <label class="control-label">验证密码</label>
+              <input name="password" type="password" value="{{ .conf.Password }}">
+              <span class="tip">SVN版本库登录密码，Git不需要</span>
+            </div>
+            </div>
+
+            <div class="stage-edit-section">
+                <h3>服务器信息</h3>
+                <div class="form-group">
+                  <label class="control-label">部署服务器组</label>
+                  <select id="tags" name="tags" multiple style="width:300px">
+                  {{range $.tags}}
+                       {{if containtag $.conf.Tags  . }}
+                      <option value="{{ . }}" selected="selected">{{ . }}</option>
+                      {{else}}
+                      <option value="{{ . }}">{{ . }}</option>
+                      {{end}}
+                     {{end}}
+                  </select>
+                </div>
+            </div>
+
+          </div>
+
+          <!--command-->
+           <div class="tab-pane stage-edit-box" id="stage-command">
+            <span id="selected-item-indicator" style="left: 189px;"></span>
+
+            <div class="stage-edit-section">
+                <h3>部署上线前执行命令</h3>
+                <div class="form-group">
+                 <textarea name="before-cmd" type="text"  rows="10" class="shell">{{ .conf.BeforeCmd }}</textarea>
+                  <div class="tip">每行一条命令，命令会在当前部署版本目录下执行. $path: 当前部署目录, $share: 共享目录, $release: 部署目录</div>
+                </div>
+            </div>
+
+
+            <div class="stage-edit-section">
+                <h3>部署上线后执行命令</h3>
+                <div class="form-group">
+                  <textarea name="after-cmd" type="text"  rows="10" class="shell">{{ .conf.AfterCmd }}</textarea>
+                </div>
+            </div>
+
+           </div>
+
+          <!--development-->
+           <div class="tab-pane stage-edit-box" id="stage-development">
+              <span id="selected-item-indicator" style="left: 330px;"></span>
+
+
+            <div class="stage-edit-section">
+                <h3>开发环境 - 部署上线前执行命令</h3>
+                <div class="form-group">
+                 <textarea name="dev-before-cmd" type="text"  rows="10" class="shell">{{ .conf.DevBeforeCmd }}</textarea>
+                 <div class="tip">每行一条命令，命令会在当前部署版本目录下执行. $path: 当前部署目录, $share: 共享目录, $release: 部署目录</div>
+                </div>
+            </div>
+
+
+            <div class="stage-edit-section">
+                <h3>开发环境 - 部署上线后执行命令</h3>
+                <div class="form-group">
+                  <textarea name="dev-after-cmd" type="text"  rows="10" class="shell">{{ .conf.DevAfterCmd }}</textarea>
+                </div>
+            </div>
+
+           </div>
+
+           <!--production-->
+            <div class="tab-pane stage-edit-box" id="stage-production">
+                <span id="selected-item-indicator" style="left: 475px;"></span>
+
+                <div class="stage-edit-section">
+                    <h3>产品环境 - 部署前执行命令</h3>
+                    <div class="form-group">
+                     <textarea name="prod-before-cmd" type="text"  rows="10" class="shell">{{ .conf.ProdBeforeCmd }}</textarea>
+                     <div class="tip">每行一条命令，命令会在当前部署版本目录下执行. $path: 当前部署目录, $share: 共享目录, $release: 部署目录</div>
+                    </div>
+                </div>
+
+
+                <div class="stage-edit-section">
+                    <h3>产品环境 - 部署后执行命令</h3>
+                    <div class="form-group">
+                      <textarea name="prod-after-cmd" type="text"  rows="10" class="shell">{{ .conf.ProdAfterCmd }}</textarea>
+                    </div>
+                </div>
+
+            </div>
+
+            </form>
+        </div>
+    </div>
+
+    <footer id="footer">
+
+      <div id="copyright">
+        Copyright © 2014 <a href="#" target="blank" id="mfa12">Champloo!.</a>
+      </div>
+    </footer>
+
+    <script src="/js/jquery-1.11.1.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/jquery.smoothState.js"></script>
+    <script src="/js/select2/select2.min.js"></script>
+    <script type="text/javascript">
+    $(function () {
+      $('#stages-tab a').click(function (e) {
+        e.preventDefault()
+        $(this).tab('show')
+      });
+
+
+      $('#ckdevelopment,#ckproducttion').each(function() {
+         if (this.checked) {
+          $('#' + $(this).attr('rel')).show();
+        } else {
+          $('#' + $(this).attr('rel')).hide();
+        }
+      });
+      $('#ckdevelopment,#ckproducttion').on('click', function() {
+        if (this.checked) {
+          $('#' + $(this).attr('rel')).show();
+        } else {
+          $('#' + $(this).attr('rel')).hide();
+        }
+      });
+
+      $('#tags').select2();
+
+      $('#save').click(function() {
+          // form validate
+
+          $.post('/config', $('form').serialize(), function(data) {
+             if (data.success) {
+              alert('保存成功');
+             } else {
+              alert('保存失败');
+             }
+          });
+      });
+    });
+    </script>
+  </body>
+</html>

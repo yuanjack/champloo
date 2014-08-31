@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Champloo!!</title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/site.css" rel="stylesheet">
+  </head>
+  <body>
+      <div class="navbar" role="navigation">
+      <div class="container-fluid navbar-snap">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand logo" href="/">Champloo<i>!</i></a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="#">Dashboard</a></li>
+            <li><a href="#">Settings</a></li>
+            <li><a href="#">Profile</a></li>
+            <li><a href="#">Help</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="container-fluid navbar-actions">
+        <div class="navbar-header">
+          <a href="/" class="back">返回</a>
+          <span class="navbar-brand" >服务器列表</span>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right" style="margin-top:10px">
+            <li><input id="search" placeholder="搜索"></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+
+    <div id="content" class="container-fluid">
+        <div id="wapper">
+        <table class="table">
+        <thead>
+        <tr>
+          <th style="width:5%">序号</th><th>服务器名</th><th>服务器IP</th><th>标签</th><th>最后心跳时间</th><th style="width:10%">操作</th>
+        </tr>
+        </thead>
+        <tbody>
+       {{range .servers}}
+       <tr class="{{ .LastHeatbeatTime | getServerStatusClass }}">
+       <td>{{ .Id }}</td>
+       <td>{{ .Host }}</td>
+       <td>{{ .Ip }}:{{ .Port }}</td>
+       <td>{{ .Tags }}</td>
+       <td>{{ .LastHeatbeatTime | formatTime }}</td>
+       <td>
+              <a  href="javascript:void(0)" class="edit" data-id="{{ .Id }}">编辑标签</a>&nbsp;&nbsp;
+              <a href="javascript:void(0)" class="delete" data-id="{{ .Id }}">删除</a>
+        </td>
+       </tr>
+       <tr class="edit-tr"  style="display:none;">
+       <td>{{ .Id }}</td>
+       <td>{{ .Host }}</td>
+       <td>{{ .Ip }}:{{ .Port }}</td>
+       <td><input value="{{ .Tags }}" >(以逗号","分隔多个)</td>
+       <td>{{ .LastHeatbeatTime | formatTime }}</td>
+       <td>
+               <a href="javascript:void(0)" class="cancel" data-id="{{ .Id }}">取消</a>&nbsp;&nbsp;
+              <a  href="javascript:void(0)" class="update" data-id="{{ .Id }}">更新</a>
+
+        </td>
+       </tr>
+        {{end}}
+        </tbody>
+        </table>
+        </div>
+    </div>
+
+    <footer id="footer">
+
+      <div id="copyright">
+        Copyright © 2014 <a href="#" target="blank" id="mfa12">Champloo!.</a>
+      </div>
+    </footer>
+    <script src="/js/jquery-1.11.1.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/jquery.smoothState.js"></script>
+    <script type="text/javascript">
+    $(function () {
+        $('#search').on('keyup', function(){
+          var keyword = $(this).val();
+          $('#content table>tbody tr').each(function(idx, n){
+            var host = $(n).find('td').eq(1).text();
+            var ip = $(n).find('td').eq(2).text();
+            if (host.indexOf(keyword) >= 0 || ip.indexOf(keyword) >= 0) {
+              $(n).show();
+            } else {
+              $(n).hide();
+            }
+          });
+        });
+
+
+        $('.delete').on('click', function() {
+          if (!confirm('确认要删除吗？')) {
+            return false;
+          }
+
+          $this = $(this);
+          var id = $this.attr('data-id');
+          $.ajax({
+                    url: '/servers/'  + id,
+                    type: 'DELETE',
+                    dataType: 'JSON',
+                    success: function(data){
+                      if (data.success) {
+                        $tr =  $this.closest('tr');
+                        $tr.css('background', 'red');
+                        $tr.fadeOut( "slow", function() {
+                            $tr.remove();
+                          });
+                      } else {
+                        alert('删除失败');
+                      }
+                    }
+          });
+        });
+
+
+        $('.edit').click(function() {
+            $(this).closest('tr').hide();
+            $(this).closest('tr').next().show();
+        });
+        $('.cancel').click(function() {
+            $(this).closest('tr').hide();
+            $(this).closest('tr').prev().show();
+        });
+        $('.update').click(function() {
+            $this = $(this);
+             var id = $(this).attr('data-id');
+             var tags = $(this).closest('tr').find('input').val();
+             tags = $.trim(tags.replace('，', ',').replace(' ', ''));
+             $.ajax({
+                          url: '/servers/'  + id,
+                          type: 'PUT',
+                          dataType: 'JSON',
+                          data: {id: id, tags : tags },
+                          success: function(data){
+                            if (data.success) {
+                              $this.closest('tr').prev().find('td').eq(3).html(tags);
+                              $(this).closest('tr').find('input').val(tags);
+                              $this.closest('tr').find('.cancel').trigger('click');
+                              alert('更新成功');
+                            } else {
+                              alert('更新失败');
+                            }
+                          }
+              });
+        });
+
+    });
+    </script>
+  </body>
+</html>

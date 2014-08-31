@@ -1,0 +1,6 @@
+github.com/go-martini/martini master
+github.com/martini-contrib/render master
+github.com/mattn/go-sqlite3 master
+github.com/jinzhu/gorm
+github.com/BurntSushi/toml master
+github.com/martini-contrib/auth

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Champloo!!</title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/site.css" rel="stylesheet">
+  </head>
+  <body>
+      <div class="navbar" role="navigation">
+      <div class="container-fluid navbar-snap">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand logo" href="/">Champloo<i>!</i></a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="#">用户管理</a></li>
+            <li><a href="#">帮助</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="container-fluid navbar-actions">
+        <div class="navbar-header">
+          <a href="/" class="back">返回</a>
+          <span class="navbar-brand" >用户列表</span>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+
+          </ul>
+        </div>
+      </div>
+    </div>
+
+
+    <div id="content" class="container-fluid">
+        <div id="wapper">
+
+            <form class="form-inline" role="form">
+                <div class="form-group">
+                  <label class="sr-only" for="exampleInputEmail2">Email address</label>
+                  <input   class="form-control" placeholder="用户名" name="name">
+                </div>
+                <div class="form-group">
+                  <div class="input-group">
+                    <input class="form-control"  placeholder="密码" name="password" type="password">
+                  </div>
+                </div>
+                <button type="button" class="btn btn-default" id="save">保存</button>
+              </form>
+                <br/>
+            <table class="table table-hover">
+            <thead>
+            <tr>
+              <th style="width:5%">序号</th><th>用户名</th><th>密码</th><th>创建时间</th><th style="width:10%">操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {{range $.users }}
+            <tr>
+                  <td>{{ .Id }}</td>
+                  <td><img src="https://sigil.cupcake.io/{{ .Name }}.png?w=48" alt="{{ .Name }}" width="24px"  height="24px" />&nbsp;&nbsp;{{ .Name }}</td>
+                  <td>***</td>
+                  <td>{{ .CreatedAt | formatTime  }}</td>
+                  <td></td>
+            </tr>
+            {{end}}
+            </tbody>
+            </table>
+        </div>
+    </div>
+
+    <footer id="footer">
+
+      <div id="copyright">
+        Copyright © 2014 <a href="#" target="blank" id="mfa12">Champloo!.</a>
+      </div>
+    </footer>
+    <script src="/js/jquery-1.11.1.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/jquery.smoothState.js"></script>
+    <script type="text/javascript">
+    $(function  () {
+          $('#save').click(function() {
+                  if ($('input[name=name]').val() == '') {
+                       alert('用户名不能为空');
+                       return;
+                  }
+                  if (! /[a-z]+/i.test($('input[name=name]').val() )) {
+                      alert('用户名只能用小写英文字符');
+                      return;
+                  }
+                  $.post('/users', $(this).closest('form').serialize(), function(data) {
+                              if  (data.success)  {
+                                   alert('保存成功.');
+                                   location.href = location.href;
+                              } else {
+                                   alert(data.message);
+                              }
+                  }, 'JSON');
+          });
+    });
+    </script>
+  </body>
+</html>

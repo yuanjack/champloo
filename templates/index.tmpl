@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Champloo!!</title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/site.css" rel="stylesheet">
+  </head>
+  <body>
+      <div class="navbar" role="navigation">
+      <div class="container-fluid navbar-snap">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand logo" href="/">Champloo<i>!</i></a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="/users">用户管理</a></li>
+            <li>
+                      <div class="profile btn-group dropup" >
+                        <a href="#" >
+                          <img src="https://sigil.cupcake.io/{{ .username }}.png?w=48" class="gravatar-image" alt="{{ .username }}" width="38"  height="38" />
+                          <span class="user_name">cxfksword</span>
+                          <span class="glyphicon glyphicon-chevron-down arrow"></span>
+                        </a>
+                         <ul class="dropdown-menu" role="menu">
+                              <li><a href="#">退出</a></li>
+                        </ul>
+                      </div>
+
+
+                </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="container-fluid navbar-actions">
+        <div class="navbar-header">
+          <span class="navbar-brand" >系统列表</span>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="/config"><span class="glyphicon glyphicon-plus"></span>增加系统</a></li>
+            <li><a href="/servers"><span class="glyphicon glyphicon-th-list"></span>服务器列表</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+
+    <div id="content" class="container-fluid">
+        <div  style="margin-top: -12px;">
+        <table class="table project-table">
+          {{range $.confs}}
+          <tr data-id="{{ .Id }}">
+            <td>{{ .Name }}</td>
+            <td><span class="label label-info">{{ .EnableDeploy.Version }}</span></td>
+            <td>
+                    {{if eq .EnableDeploy.Id 0 }}
+                          <span class="build-status notstart"></span>
+                    {{else}}
+                          {{if eq .EnableDeploy.Status 0 }}
+                          <span class="build-status pending"></span>
+                          {{else}}
+                                {{if eq .EnableDeploy.Status -1 }}
+                                <span class="build-status failed"></span>
+                                {{else}}
+                               <span class="build-status success"></span>
+                                {{end}}
+                          {{end}}
+                  {{end}}
+
+            </td>
+            <td style="font-size: 13px;">
+                  <img src="https://sigil.cupcake.io/{{ .EnableDeploy.Operator }}.png?w=48" alt="{{ .EnableDeploy.Operator }}" width="24px"  height="24px" />&nbsp;&nbsp;{{ .EnableDeploy.Operator }}
+            </td>
+            <td style="font-size: 13px;">{{ .EnableDeploy.CreatedAt | formatTime }}</td>
+          </tr>
+          {{end}}
+        </table>
+        </div>
+    </div>
+
+    <footer id="footer">
+
+      <div id="copyright">
+        Copyright © 2014 <a href="#" target="blank" id="mfa12">Champloo!.</a>
+      </div>
+    </footer>
+    <script src="/js/jquery-1.11.1.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/jquery.smoothState.js"></script>
+    <script type="text/javascript">
+    $(function () {
+      $('tr').click(function() {
+          var id = $(this).attr('data-id');
+          location.href='/build/' + id;
+      });
+    });
+    </script>
+  </body>
+</html>
