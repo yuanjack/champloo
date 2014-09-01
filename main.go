@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/go-martini/martini"
-	"github.com/martini-contrib/auth"
 	"github.com/martini-contrib/binding"
 	"github.com/martini-contrib/render"
 )
@@ -37,7 +36,7 @@ func main() {
 
 	m := martini.Classic()
 	//m.Use(martini.Static("public", martini.StaticOptions{Prefix: "/public"}))
-	m.Use(auth.BasicFunc(func(username string, password string) bool {
+	m.Use(BasicFunc(func(username string, password string) bool {
 		var user User
 		db.First(&user, User{Name: username})
 		if user.Id <= 0 {
@@ -47,6 +46,7 @@ func main() {
 		return username == user.Name && password == user.Password
 	}))
 	m.Use(render.Renderer(render.Options{
+		Layout: "layout",
 		Funcs: []template.FuncMap{
 			{
 				"formatTime": func(args ...interface{}) string {
@@ -78,7 +78,7 @@ func main() {
 		},
 	}))
 
-	m.Get("/", func(username auth.User, r render.Render) {
+	m.Get("/", func(username AuthUser, r render.Render) {
 		var confs []SystemConfig
 		db.Find(&confs)
 
@@ -91,11 +91,11 @@ func main() {
 		data := map[string]interface{}{"username": username, "confs": confs}
 		r.HTML(200, "index", data)
 	})
-	m.Get("/users", func(r render.Render) {
+	m.Get("/users", func(username AuthUser, r render.Render) {
 		var users []User
 		db.Order("id desc").Find(&users)
 
-		data := map[string]interface{}{"users": users}
+		data := map[string]interface{}{"username": username, "users": users}
 		r.HTML(200, "user", data)
 	})
 	m.Post("/users", binding.Bind(User{}), func(user User, r render.Render) {
@@ -107,7 +107,7 @@ func main() {
 			sendFailMsg(r, "保存失败."+err.Error(), "")
 		}
 	})
-	m.Get("/build/:id", func(params martini.Params, r render.Render) {
+	m.Get("/build/:id", func(username AuthUser, params martini.Params, r render.Render) {
 		id, _ := strconv.Atoi(params["id"])
 
 		var conf SystemConfig
@@ -116,7 +116,7 @@ func main() {
 		var deploys []Deploy
 		db.Limit(10).Order("id desc").Find(&deploys, Deploy{SystemId: id})
 
-		data := map[string]interface{}{"conf": conf, "deploys": deploys}
+		data := map[string]interface{}{"username": username, "conf": conf, "deploys": deploys}
 		r.HTML(200, "build", data)
 	})
 	m.Post("/deploy/:id", ExecuteDeployDefault)
@@ -155,7 +155,7 @@ func main() {
 
 	})
 	m.Post("/deploy/:id/rollback", ExecuteRollback)
-	m.Get("/config", func(r render.Render) {
+	m.Get("/config", func(username AuthUser, r render.Render) {
 		var servers []Server
 		db.Select("tags").Find(&servers)
 
@@ -182,7 +182,7 @@ func main() {
 			tags = append(tags, key)
 		}
 
-		data := map[string]interface{}{"tags": tags, "conf": SystemConfig{Way: "checkout", BackupNum: 10}}
+		data := map[string]interface{}{"username": username, "tags": tags, "conf": SystemConfig{Way: "checkout", BackupNum: 10}}
 		r.HTML(200, "config", data)
 	})
 	m.Post("/config", func(req *http.Request, params martini.Params, r render.Render) {
@@ -278,11 +278,11 @@ func main() {
 		data := map[string]interface{}{"tags": tags, "conf": conf}
 		r.HTML(200, "config", data)
 	})
-	m.Get("/servers", func(r render.Render) {
+	m.Get("/servers", func(username AuthUser, r render.Render) {
 		var servers []Server
 		db.Find(&servers)
 
-		data := map[string]interface{}{"servers": servers}
+		data := map[string]interface{}{"username": username, "servers": servers}
 		r.HTML(200, "servers", data)
 	})
 	m.Delete("/servers/:id", func(params martini.Params, r render.Render) {
