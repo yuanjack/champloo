@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/go-martini/martini"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/go-martini/martini"
 )
 
 func Heartbeat(r *http.Request, params martini.Params) string {

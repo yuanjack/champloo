@@ -68,7 +68,7 @@
             {{range $.users }}
             <tr>
                   <td>{{ .Id }}</td>
-                  <td><img src="https://sigil.cupcake.io/{{ .Name }}.png?w=48" alt="{{ .Name }}" width="24px"  height="24px" />&nbsp;&nbsp;{{ .Name }}</td>
+                  <td><img src="/avatar/{{ .Name }}.png?w=48" alt="{{ .Name }}" width="24px"  height="24px" />&nbsp;&nbsp;{{ .Name }}</td>
                   <td>***</td>
                   <td>{{ .CreatedAt | formatTime  }}</td>
                   <td></td>

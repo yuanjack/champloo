@@ -336,6 +336,7 @@ func main() {
 		})
 	})
 	m.Get("/api/heartbeat", Heartbeat)
+	m.Get("/avatar/.*", GenAvatar)
 	m.Run()
 }
 

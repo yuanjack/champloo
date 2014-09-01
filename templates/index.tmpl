@@ -26,7 +26,7 @@
             <li>
                       <div class="profile btn-group dropup" >
                         <a href="#" >
-                          <img src="https://sigil.cupcake.io/{{ .username }}.png?w=48" class="gravatar-image" alt="{{ .username }}" width="38"  height="38" />
+                          <img src="/avatar/{{ .username }}.png?w=48" class="gravatar-image" alt="{{ .username }}" width="38"  height="38" />
                           <span class="user_name">cxfksword</span>
                           <span class="glyphicon glyphicon-chevron-down arrow"></span>
                         </a>
@@ -79,7 +79,7 @@
 
             </td>
             <td style="font-size: 13px;">
-                  <img src="https://sigil.cupcake.io/{{ .EnableDeploy.Operator }}.png?w=48" alt="{{ .EnableDeploy.Operator }}" width="24px"  height="24px" />&nbsp;&nbsp;{{ .EnableDeploy.Operator }}
+                  <img src="/avatar/{{ .EnableDeploy.Operator }}.png?w=48" alt="{{ .EnableDeploy.Operator }}" width="24px"  height="24px" />&nbsp;&nbsp;{{ .EnableDeploy.Operator }}
             </td>
             <td style="font-size: 13px;">{{ .EnableDeploy.CreatedAt | formatTime }}</td>
           </tr>
