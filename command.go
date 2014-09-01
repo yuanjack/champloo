@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -50,14 +51,39 @@ func (s *ShellSession) Run() {
 	s.IsComplete = true
 }
 
-func (s *ShellSession) AsyRun() {
-	go func() {
-		s.Run()
-	}()
-}
-
 func (s *ShellSession) ParallelRun() {
+	for i := 0; i < s.CommandCount; i++ {
+		isHalt := false
+		var wg sync.WaitGroup
+		for server, shell := range s.ExecuteResult {
+			// 已停用服务器不处理
+			if server.Disable {
+				continue
+			}
 
+			wg.Add(1)
+			go func() {
+				cmd := shell.cmds[i]
+				cmd.Run(server.Ip, server.Port)
+				if cmd.Halt() {
+					isHalt = true
+				}
+
+				defer wg.Done()
+			}()
+		}
+
+		wg.Wait()
+
+		//  判断是否有命令出错，需中断执行
+		if isHalt {
+			s.IsComplete = true
+			s.Success = false
+			return
+		}
+	}
+	s.Success = true
+	s.IsComplete = true
 }
 
 func (s *ShellSession) Output() string {

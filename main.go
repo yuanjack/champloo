@@ -244,7 +244,7 @@ func main() {
 			Data:    conf,
 		})
 	})
-	m.Get("/config/:id", func(params martini.Params, r render.Render) {
+	m.Get("/config/:id", func(username AuthUser, params martini.Params, r render.Render) {
 		id, _ := strconv.Atoi(params["id"])
 
 		var servers []Server
@@ -275,7 +275,7 @@ func main() {
 
 		var conf SystemConfig
 		db.First(&conf, id)
-		data := map[string]interface{}{"tags": tags, "conf": conf}
+		data := map[string]interface{}{"username": username, "tags": tags, "conf": conf}
 		r.HTML(200, "config", data)
 	})
 	m.Get("/servers", func(username AuthUser, r render.Render) {

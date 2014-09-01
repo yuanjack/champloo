@@ -7,26 +7,25 @@ import (
 	"time"
 
 	"github.com/go-martini/martini"
-	"github.com/martini-contrib/auth"
 	"github.com/martini-contrib/render"
 )
 
 // 默认发布
-func ExecuteDeployDefault(username auth.User, params martini.Params, r render.Render) {
+func ExecuteDeployDefault(username AuthUser, params martini.Params, r render.Render) {
 	executeDeploy("", username, params, r)
 }
 
 // 发布到开发场景(Dev)
-func ExecuteDeployDev(username auth.User, params martini.Params, r render.Render) {
+func ExecuteDeployDev(username AuthUser, params martini.Params, r render.Render) {
 	executeDeploy("dev", username, params, r)
 }
 
 // 发布到产品场景(Prod)
-func ExecuteDeployProd(username auth.User, params martini.Params, r render.Render) {
+func ExecuteDeployProd(username AuthUser, params martini.Params, r render.Render) {
 	executeDeploy("prod", username, params, r)
 }
 
-func executeDeploy(stage string, username auth.User, params martini.Params, r render.Render) {
+func executeDeploy(stage string, username AuthUser, params martini.Params, r render.Render) {
 	id, _ := strconv.Atoi(params["id"])
 
 	var conf SystemConfig
@@ -163,7 +162,7 @@ func executeDeploy(stage string, username auth.User, params martini.Params, r re
 	mutex.Unlock()
 
 	startTime := time.Now()
-	session.Run()
+	session.ParallelRun()
 	if !session.Success {
 		deploy.Stage = stage
 		deploy.Operator = string(username)
@@ -191,7 +190,7 @@ func executeDeploy(stage string, username auth.User, params martini.Params, r re
 
 }
 
-func executeDeployUpdate(stage string, username auth.User, params martini.Params, r render.Render) {
+func executeDeployUpdate(stage string, username AuthUser, params martini.Params, r render.Render) {
 	id, _ := strconv.Atoi(params["id"])
 
 	if isDeploying(id) {
@@ -310,7 +309,7 @@ func executeDeployUpdate(stage string, username auth.User, params martini.Params
 	mutex.Unlock()
 
 	startTime := time.Now()
-	session.Run()
+	session.ParallelRun()
 	if !session.Success {
 		deploy.Stage = stage
 		deploy.Operator = string(username)
@@ -336,7 +335,7 @@ func executeDeployUpdate(stage string, username auth.User, params martini.Params
 }
 
 // 回滚部署
-func ExecuteRollback(username auth.User, params martini.Params, r render.Render) {
+func ExecuteRollback(username AuthUser, params martini.Params, r render.Render) {
 	deployId, _ := strconv.Atoi(params["id"])
 
 	var deploy Deploy
@@ -381,7 +380,7 @@ func ExecuteRollback(username auth.User, params martini.Params, r render.Render)
 	sessions[id] = session
 	mutex.Unlock()
 
-	session.Run()
+	session.ParallelRun()
 	if !session.Success {
 		sendFailMsg(r, "回滚失败.", session.Output())
 		return
