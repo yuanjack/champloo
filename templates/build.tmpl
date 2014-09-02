@@ -98,6 +98,11 @@
                   </tbody>
               </table>
 
+              <div class="alert alert-success" role="alert" style="margin-bottom:10px; display:none">
+              <span class="glyphicon glyphicon-ok"></span>&nbsp;&nbsp;部署成功╮(￣▽￣)╭</div>
+
+              <div class="alert alert-danger" role="alert" style="margin-bottom:10px; display:none">
+              <span class="glyphicon glyphicon-remove"></span>&nbsp;&nbsp;部署失败！(╯￣Д￣)╯╘═╛ </div>
 
               <pre id="deploy-shell"></pre>
 
@@ -113,6 +118,9 @@
               }
 
 
+              $('.alert-success').hide();
+              $('.alert-danger').hide();
+
               var id = $(this).attr('data-id');
               var type = $(this).attr('data-type');
               $('#deploy-shell').html('');
@@ -120,16 +128,20 @@
                   $.post('/deploy/' + id, function(data) {
                           if (data.success) {
                                 notify_success("部署成功.");
+                                $('.alert-success').show();
                           } else {
                                 notify_error("部署失败.");
+                                $('.alert-danger').show();
                           }
                   });
               } else {
                   $.post('/deploy/' + type + "/" + id, function(data) {
                         if (data.success) {
                                 notify_success("部署成功.");
+                                $('.alert-success').show();
                           } else {
                                 notify_error("部署失败.");
+                                $('.alert-danger').show();
                           }
                   });
               }
@@ -151,7 +163,7 @@
                 $('#deploy-shell').html('');
                 var id = $(this).attr('data-id');
                 $.post('/deploy/' + id + '/rollback', function(data) {
-                         alert(data.message);
+                         notify(data.message);
                          $('#deploy-shell').html(data.data).show();
                          if (data.success) {
                                 var stage = $this.closest('tr').find('td').eq(1).text();
@@ -175,7 +187,7 @@
    var refreshInterval;
    function refresh_console(interval) {
          if (typeof interval == 'undefined') {
-              interval = 2000
+              interval = 1000
          }
           if (refreshInterval != null && typeof refreshInterval != 'undefined') {
                 clearInterval(refreshInterval);
