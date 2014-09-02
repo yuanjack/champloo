@@ -240,13 +240,13 @@ func (s *ShellCommand) SvnCopy(currentDir string, dest string, repo string, user
             if [ -d "%s" ]; then
                 cp -rL %s/*  %s
                 cd %s
-                svn up
+                svn up --username %s --password %s --no-auth-cache
             else
                 svn checkout --username %s --password %s --no-auth-cache %s %s
             fi
              `
 	c := command{
-		cmd:     fmt.Sprintf(cmd, currentDir, currentDir, dest, dest, username, password, repo, dest),
+		cmd:     fmt.Sprintf(cmd, currentDir, currentDir, dest, dest, username, password, username, password, repo, dest),
 		canHalt: true,
 	}
 	s.cmds = append(s.cmds, &c)
@@ -257,13 +257,13 @@ func (s *ShellCommand) SvnUpdate(currentDir string, dest string, repo string, us
 	cmd := `
             if [ -d "%s" ]; then
                 cd %s
-                svn up
+                svn up --username %s --password %s --no-auth-cache
             else
                 svn checkout --username %s --password %s --no-auth-cache %s %s
             fi
              `
 	c := command{
-		cmd:     fmt.Sprintf(cmd, currentDir, currentDir, username, password, repo, dest),
+		cmd:     fmt.Sprintf(cmd, currentDir, currentDir, username, password, username, password, repo, dest),
 		canHalt: true,
 	}
 	s.cmds = append(s.cmds, &c)

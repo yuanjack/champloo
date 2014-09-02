@@ -316,6 +316,7 @@ func executeDeployUpdate(stage string, username AuthUser, params martini.Params,
 		deploy.Status = -1
 		deploy.Output = session.Output()
 		deploy.ElapsedTime = int(time.Now().Sub(startTime).Seconds())
+		deploy.CreatedAt = time.Now()
 		db.Save(&deploy)
 
 		sendFailMsg(r, "部署失败.", session.Output())
@@ -328,6 +329,7 @@ func executeDeployUpdate(stage string, username AuthUser, params martini.Params,
 	deploy.Output = session.Output()
 	deploy.Enable = true
 	deploy.ElapsedTime = int(time.Now().Sub(startTime).Seconds())
+	deploy.CreatedAt = time.Now()
 	db.Save(&deploy)
 	sendSuccessMsg(r, nil)
 	return
