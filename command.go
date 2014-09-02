@@ -32,12 +32,14 @@ func NewShellSession(servers []Server, cmd ShellCommand) *ShellSession {
 
 func (s *ShellSession) Run() {
 	for i := 0; i < s.CommandCount; i++ {
+		allServerDisable := true
 		for server, shell := range s.ExecuteResult {
 			// 已停用服务器不处理
 			if server.Disable {
 				continue
 			}
 
+			allServerDisable = false
 			cmd := shell.cmds[i]
 			cmd.Run(server.Ip, server.Port)
 			if cmd.Halt() {
@@ -46,6 +48,13 @@ func (s *ShellSession) Run() {
 				return
 			}
 		}
+
+		if allServerDisable {
+			s.IsComplete = true
+			s.Success = false
+			return
+		}
+
 	}
 	s.Success = true
 	s.IsComplete = true
@@ -54,14 +63,17 @@ func (s *ShellSession) Run() {
 func (s *ShellSession) ParallelRun() {
 	for i := 0; i < s.CommandCount; i++ {
 		isHalt := false
+		allServerDisable := true
 		var wg sync.WaitGroup
 		for server, shell := range s.ExecuteResult {
 			// 已停用服务器不处理
 			if server.Disable {
+				fmt.Println(server.Ip + "已停用.")
 				continue
 			}
 
 			wg.Add(1)
+			allServerDisable = false
 			srv := server
 			cmd := shell.cmds[i]
 			go func() {
@@ -77,7 +89,7 @@ func (s *ShellSession) ParallelRun() {
 		wg.Wait()
 
 		//  判断是否有命令出错，需中断执行
-		if isHalt {
+		if isHalt || allServerDisable {
 			s.IsComplete = true
 			s.Success = false
 			return
@@ -94,9 +106,16 @@ func (s *ShellSession) Output() string {
 	// 命令出错时，显示所有出错服务器输出信息
 	for i := 0; i < s.CommandCount; i++ {
 		allServerSuccess := true
+		allServerDisable := true
 		cmdstr := ""
 		outputstr := ""
 		for server, shell := range s.ExecuteResult {
+			// 已停用服务器不处理
+			if server.Disable {
+				continue
+			}
+
+			allServerDisable = false
 			cmd := shell.cmds[i]
 			if !cmd.HasExecute() {
 				continue
@@ -111,6 +130,11 @@ func (s *ShellSession) Output() string {
 			}
 		}
 
+		if allServerDisable {
+			output = "当前没有可用服务器需要部署."
+			break
+		}
+
 		output += fmt.Sprintln("<i></i><span>" + cmdstr + "</span>")
 		output += fmt.Sprintln(outputstr)
 		if !allServerSuccess {
@@ -119,7 +143,7 @@ func (s *ShellSession) Output() string {
 	}
 
 	if output != "" {
-		serverstr := fmt.Sprintln("[提示] 将更新到如下服务器：")
+		serverstr := "[提示] 将更新到如下服务器：\n      "
 		for server, _ := range s.ExecuteResult {
 			if server.Disable {
 				continue
@@ -134,7 +158,7 @@ func (s *ShellSession) Output() string {
 			}
 		}
 		if disablestr != "" {
-			disablestr = fmt.Sprintln("           停用不更新的服务器：") + disablestr
+			disablestr = "\n      停用不更新的服务器：\n      " + disablestr
 		}
 
 		output = "<span class='tip'>" + serverstr + disablestr + "</span>\n\n" + output

@@ -215,9 +215,9 @@
 
           $.post('/config', $('form').serialize(), function(data) {
              if (data.success) {
-              alert('保存成功');
+              notify('保存成功');
              } else {
-              alert('保存失败');
+              notify_error('保存失败');
              }
           });
       });

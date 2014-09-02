@@ -119,17 +119,17 @@
               if (type == "") {
                   $.post('/deploy/' + id, function(data) {
                           if (data.success) {
-                                alert("部署成功.");
+                                notify_success("部署成功.");
                           } else {
-                                alert("部署失败.");
+                                notify_error("部署失败.");
                           }
                   });
               } else {
                   $.post('/deploy/' + type + "/" + id, function(data) {
                         if (data.success) {
-                                alert("部署成功.");
+                                notify_success("部署成功.");
                           } else {
-                                alert("部署失败.");
+                                notify_error("部署失败.");
                           }
                   });
               }

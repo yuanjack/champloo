@@ -56,16 +56,16 @@
     $(function  () {
           $('#save').click(function() {
                   if ($('input[name=name]').val() == '') {
-                       alert('用户名不能为空');
+                       notify_error('用户名不能为空');
                        return;
                   }
                   if (! /[a-z]+/i.test($('input[name=name]').val() )) {
-                      alert('用户名只能用小写英文字符');
+                      notify_error('用户名只能用小写英文字符');
                       return;
                   }
                   $.post('/users', $(this).closest('form').serialize(), function(data) {
                               if  (data.success)  {
-                                   alert('保存成功.');
+                                   notify('保存成功.');
                                    location.href = location.href;
                               } else {
                                    alert(data.message);

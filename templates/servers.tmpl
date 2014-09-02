@@ -92,7 +92,7 @@
                             $tr.remove();
                           });
                       } else {
-                        alert('删除失败');
+                          notify_error('删除失败');
                       }
                     }
           });
@@ -122,9 +122,9 @@
                               $this.closest('tr').prev().find('td').eq(3).html(tags);
                               $(this).closest('tr').find('input').val(tags);
                               $this.closest('tr').find('.cancel').trigger('click');
-                              alert('更新成功');
+                              notify('更新成功');
                             } else {
-                              alert('更新失败');
+                              notify_error('更新失败');
                             }
                           }
               });
@@ -141,13 +141,14 @@
                               if ($this.text() == '启用') {
                                   $this.closest('tr').removeClass('active');
                                   $this.html('停用');
+                                  notify('已启用 ');
                               } else {
                                   $this.closest('tr').addClass('active');
                                   $this.html('启用');
+                                  notify('已停用');
                               }
-                              alert('更新成功');
                             } else {
-                              alert('更新失败');
+                              notify_error('更新失败');
                             }
                           }
               });
