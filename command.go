@@ -228,7 +228,7 @@ func (s *ShellCommand) GitUpdate(currentDir string, dest string, repo string) *S
 
 func (s *ShellCommand) Svn(dest string, repo string, username string, password string) *ShellCommand {
 	c := command{
-		cmd:     fmt.Sprintf("svn checkout --username %s --password %s  %s %s", username, password, repo, dest),
+		cmd:     fmt.Sprintf("svn checkout --username %s --password %s --no-auth-cache %s %s", username, password, repo, dest),
 		canHalt: true,
 	}
 	s.cmds = append(s.cmds, &c)
@@ -242,7 +242,7 @@ func (s *ShellCommand) SvnCopy(currentDir string, dest string, repo string, user
                 cd %s
                 svn up
             else
-                svn checkout --username %s --password %s  %s %s
+                svn checkout --username %s --password %s --no-auth-cache %s %s
             fi
              `
 	c := command{
@@ -259,7 +259,7 @@ func (s *ShellCommand) SvnUpdate(currentDir string, dest string, repo string, us
                 cd %s
                 svn up
             else
-                svn checkout --username %s --password %s  %s %s
+                svn checkout --username %s --password %s --no-auth-cache %s %s
             fi
              `
 	c := command{
