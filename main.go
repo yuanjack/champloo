@@ -321,7 +321,9 @@ func main() {
 		server.Tags = strings.TrimLeft(server.Tags, ",")
 		server.Tags = strings.TrimRight(server.Tags, ",")
 		var temp Server
-		err = db.First(&temp, id).Update("tags", server.Tags).Error
+		db.First(&temp, id)
+		temp.Tags = server.Tags
+		err = db.Save(&temp).Error
 		if err != nil {
 			r.JSON(200, ActionMessage{
 				Success: false,
