@@ -62,9 +62,10 @@ func (s *ShellSession) ParallelRun() {
 			}
 
 			wg.Add(1)
+			srv := server
+			cmd := shell.cmds[i]
 			go func() {
-				cmd := shell.cmds[i]
-				cmd.Run(server.Ip, server.Port)
+				cmd.Run(srv.Ip, srv.Port)
 				if cmd.Halt() {
 					isHalt = true
 				}
