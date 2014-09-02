@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
-	"net/http"
 	"strconv"
 	"strings"
 	"sync"
@@ -85,10 +84,19 @@ func main() {
 		var confs []SystemConfig
 		db.Order("id desc").Find(&confs)
 
+		var user User
+		db.First(&user, User{Name: string(username)})
+
 		for i := 0; i < len(confs); i++ {
 			var deploy Deploy
 			db.Select("id, version, operator, status, created_at").First(&deploy, Deploy{SystemId: confs[i].Id, Enable: true})
 			confs[i].EnableDeploy = deploy
+
+			var star UserStar
+			db.First(&star, UserStar{SystemId: confs[i].Id, UserId: user.Id})
+			if star.Id > 0 {
+				confs[i].IsUserStar = true
+			}
 		}
 
 		data := map[string]interface{}{"username": username, "confs": confs}
@@ -125,162 +133,13 @@ func main() {
 	m.Post("/deploy/:id", ExecuteDeployDefault)
 	m.Post("/deploy/dev/:id", ExecuteDeployDev)
 	m.Post("/deploy/prod/:id", ExecuteDeployProd)
-	m.Get("/deploy/:id/progress", func(params martini.Params, r render.Render) {
-		id, _ := strconv.Atoi(params["id"])
-
-		var s *ShellSession
-		var found bool
-		mutex.Lock()
-		s, found = sessions[id]
-		mutex.Unlock()
-
-		if found {
-			data := map[string]interface{}{}
-			data["output"] = s.Output()
-			data["complete"] = s.IsComplete
-			r.JSON(200, data)
-		} else {
-			data := map[string]interface{}{}
-			data["output"] = ""
-			data["complete"] = true
-			r.JSON(200, data)
-		}
-	})
-	m.Get("/deploy/:id/log", func(params martini.Params, r render.Render) {
-		id, _ := strconv.Atoi(params["id"])
-
-		var deploy Deploy
-		db.First(&deploy, id)
-
-		data := map[string]interface{}{}
-		data["output"] = deploy.Output
-		r.JSON(200, data)
-
-	})
+	m.Get("/deploy/:id/progress", DeployProgress)
+	m.Get("/deploy/:id/log", GetDeployLog)
 	m.Post("/deploy/:id/rollback", ExecuteRollback)
-	m.Get("/config", func(username AuthUser, r render.Render) {
-		var servers []Server
-		db.Select("tags").Find(&servers)
-
-		tagsMap := map[string]bool{}
-		tagsMap["全部"] = true
-		for _, server := range servers {
-			if server.Tags == "" {
-				continue
-			}
-
-			arr := strings.Split(server.Tags, ",")
-			for _, tag := range arr {
-				if strings.TrimSpace(tag) == "" {
-					continue
-				}
-
-				tagsMap[strings.TrimSpace(tag)] = true
-			}
-		}
-
-		tags := []string{}
-
-		for key, _ := range tagsMap {
-			tags = append(tags, key)
-		}
-
-		data := map[string]interface{}{"username": username, "tags": tags, "conf": SystemConfig{Way: "checkout", BackupNum: 10}}
-		r.HTML(200, "config", data)
-	})
-	m.Post("/config", func(req *http.Request, params martini.Params, r render.Render) {
-		req.ParseForm()
-		id, _ := strconv.Atoi(req.PostForm.Get("id"))
-		name := req.PostForm.Get("name")
-		enbaleDevStage := req.PostForm.Get("dev-stage") == "on"
-		enbaleProdStage := req.PostForm.Get("prod-stage") == "on"
-		way := req.PostForm.Get("way")
-		path := req.PostForm.Get("path")
-		shared := req.PostForm.Get("shared")
-		num, _ := strconv.Atoi(req.PostForm.Get("num"))
-		repo := req.PostForm.Get("repo")
-		username := req.PostForm.Get("username")
-		password := req.PostForm.Get("password")
-		beforecmd := req.PostForm.Get("before-cmd")
-		aftercmd := req.PostForm.Get("after-cmd")
-		devBeforeCmd := req.PostForm.Get("dev-before-cmd")
-		devAfterCmd := req.PostForm.Get("dev-after-cmd")
-		prodBeforeCmd := req.PostForm.Get("prod-before-cmd")
-		prodAfterCmd := req.PostForm.Get("prod-after-cmd")
-		tagsSlice := req.Form["tags"]
-		tags := ""
-		if len(tagsSlice) > 0 {
-			tags = strings.Join(tagsSlice, ",")
-		}
-
-		conf := SystemConfig{
-			Id:              id,
-			Name:            name,
-			EnableDevStage:  enbaleDevStage,
-			EnableProdStage: enbaleProdStage,
-			Way:             way,
-			Path:            path,
-			Shared:          shared,
-			BackupNum:       num,
-			Repo:            repo,
-			UserName:        username,
-			Password:        password,
-			Tags:            tags,
-			BeforeCmd:       beforecmd,
-			AfterCmd:        aftercmd,
-			DevBeforeCmd:    devBeforeCmd,
-			DevAfterCmd:     devAfterCmd,
-			ProdBeforeCmd:   prodBeforeCmd,
-			ProdAfterCmd:    prodAfterCmd,
-		}
-		err = db.Save(&conf).Error
-		if err != nil {
-			r.JSON(200, ActionMessage{
-				Success: false,
-				Message: "更新出错." + err.Error(),
-			})
-			return
-		}
-		r.JSON(200, ActionMessage{
-			Success: true,
-			Message: "成功",
-			Data:    conf,
-		})
-	})
-	m.Get("/config/:id", func(username AuthUser, params martini.Params, r render.Render) {
-		id, _ := strconv.Atoi(params["id"])
-
-		var servers []Server
-		db.Select("tags").Find(&servers)
-
-		tagsMap := map[string]bool{}
-		tagsMap["全部"] = true
-		for _, server := range servers {
-			if server.Tags == "" {
-				continue
-			}
-
-			arr := strings.Split(server.Tags, ",")
-			for _, tag := range arr {
-				if strings.TrimSpace(tag) == "" {
-					continue
-				}
-
-				tagsMap[strings.TrimSpace(tag)] = true
-			}
-		}
-
-		tags := []string{}
-
-		for key, _ := range tagsMap {
-			tags = append(tags, key)
-		}
-
-		var conf SystemConfig
-		db.First(&conf, id)
-		data := map[string]interface{}{"username": username, "tags": tags, "conf": conf}
-		r.HTML(200, "config", data)
-	})
+	m.Get("/config", NewSystem)
+	m.Post("/config", SaveSystem)
+	m.Get("/config/:id", GetSystemById)
+	m.Put("/config/:id/star", ToggleStarSystem)
 	m.Get("/servers", GetServers)
 	m.Delete("/servers/:id", DeleteServer)
 	m.Put("/servers/:id", binding.Bind(Server{}), EditServer)

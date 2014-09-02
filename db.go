@@ -44,6 +44,7 @@ type SystemConfig struct {
 	ProdBeforeCmd   string `form:"prod-before-cmd"`
 	ProdAfterCmd    string `form:"prod-after-cmd"`
 	AutoUpdate      bool   `sql:"not null"` // 是否自动更新，只有way是update方式时才有效
+	IsUserStar      bool   `sql:"-"`        // 是否被用户收藏
 	EnableDeploy    Deploy `sql:"-"`        // 当前正在启用的部署版本
 }
 
@@ -69,6 +70,12 @@ type User struct {
 	CreatedAt time.Time
 }
 
+type UserStar struct {
+	Id       int `gorm:"primary_key:yes" form:"id"`
+	UserId   int
+	SystemId int
+}
+
 func InitDb() error {
 	os.MkdirAll(path.Dir(dbPath), os.ModePerm)
 	var err error
@@ -76,7 +83,7 @@ func InitDb() error {
 	if err != nil {
 		return fmt.Errorf("models.init(fail to conntect database): %v", err)
 	}
-	db.AutoMigrate(Server{}, SystemConfig{}, Deploy{}, User{})
+	db.AutoMigrate(Server{}, SystemConfig{}, Deploy{}, User{}, UserStar{})
 
 	var count int
 	db.Model(User{}).Count(&count)

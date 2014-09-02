@@ -2,7 +2,8 @@
 
       <div class="container-fluid navbar-actions">
         <div class="navbar-header">
-          <span class="navbar-brand" >系统列表</span>
+          <span class="navbar-brand" >系统列表<a href="javascript:void(0)" class="star"><span class="glyphicon glyphicon-star-empty"></span></a></span>
+
         </div>
         <div class="navbar-collapse collapse">
           <ul class="nav navbar-nav navbar-right">
@@ -18,7 +19,7 @@
         <div  style="margin-top: -12px;">
         <table class="table project-table">
           {{range $.confs}}
-          <tr data-id="{{ .Id }}">
+          <tr data-id="{{ .Id }}" class="{{if not .IsUserStar }} notstar {{end}}">
             <td>{{ .Name }}</td>
             <td><span class="label label-info">{{ .EnableDeploy.Version }}</span></td>
             <td>
@@ -45,6 +46,15 @@
                   {{end}}
             </td>
             <td style="font-size: 13px;">{{ .EnableDeploy.CreatedAt | formatTime }}</td>
+            <td style="width:10%;padding-top:0px !important;padding-right:20px !important;position:relative; text-align:right;">
+                      <a href="javascript:void(0)" class="star">
+                      {{if .IsUserStar }}
+                      <span class="glyphicon glyphicon-star"></span>
+                      {{else}}
+                      <span class="glyphicon glyphicon-star-empty"></span>
+                      {{end}}
+                      </a>
+            </td>
           </tr>
           {{end}}
         </table>
@@ -56,6 +66,46 @@
         $('tr').click(function() {
             var id = $(this).attr('data-id');
             location.href='/build/' + id;
+        })
+        .mouseover(function() {
+            $(this).find('.star').show();
+        })
+        .mouseout(function() {
+            $(this).find('.star').hide();
+        });
+        $('.navbar-brand .star').click(function() {
+             if ($(this).find('span').hasClass('glyphicon-star-empty')) {
+                    $(this).find('span').removeClass('glyphicon-star-empty').addClass('glyphicon-star');
+                    // 显示用户收藏的系统
+                    $('tr.notstar').hide();
+             }  else {
+                    $(this).find('span').removeClass('glyphicon-star').addClass('glyphicon-star-empty');
+                    $('tr.notstar').show();
+             }
+
+        });
+        $('.project-table .star').click(function() {
+            $this = $(this);
+             var id = $(this).closest('tr').attr('data-id');
+             $.ajax({
+                          url: '/config/'  + id + '/star',
+                          type: 'PUT',
+                          dataType: 'json',
+                          success: function(data){
+                            if (data.success) {
+                              if ($this.find('span').hasClass('glyphicon-star-empty')) {
+                                  $this.find('span').removeClass('glyphicon-star-empty').addClass('glyphicon-star');
+                                  $this.closest('tr').removeClass('notstar');
+                              } else {
+                                  $this.find('span').removeClass('glyphicon-star').addClass('glyphicon-star-empty');
+                                  $this.closest('tr').addClass('notstar');
+                              }
+                            } else {
+                              notify_error('收藏失败');
+                            }
+                          }
+              });
+            return false;
         });
     });
     </script>

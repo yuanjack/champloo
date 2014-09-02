@@ -397,3 +397,37 @@ func ExecuteRollback(username AuthUser, params martini.Params, r render.Render) 
 	return
 
 }
+
+func DeployProgress(params martini.Params, r render.Render) {
+	id, _ := strconv.Atoi(params["id"])
+
+	var s *ShellSession
+	var found bool
+	mutex.Lock()
+	s, found = sessions[id]
+	mutex.Unlock()
+
+	if found {
+		data := map[string]interface{}{}
+		data["output"] = s.Output()
+		data["complete"] = s.IsComplete
+		r.JSON(200, data)
+	} else {
+		data := map[string]interface{}{}
+		data["output"] = ""
+		data["complete"] = true
+		r.JSON(200, data)
+	}
+}
+
+func GetDeployLog(params martini.Params, r render.Render) {
+	id, _ := strconv.Atoi(params["id"])
+
+	var deploy Deploy
+	db.First(&deploy, id)
+
+	data := map[string]interface{}{}
+	data["output"] = deploy.Output
+	r.JSON(200, data)
+
+}
