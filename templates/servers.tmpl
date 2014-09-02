@@ -23,7 +23,7 @@
         </thead>
         <tbody>
        {{range .servers}}
-       <tr class="{{ .LastHeatbeatTime | getServerStatusClass }}">
+       <tr class="{{getServerStatusClass .LastHeatbeatTime .Disable}}">
        <td>{{ .Id }}</td>
        <td>{{ .Host }}</td>
        <td>{{ .Ip }}:{{ .Port }}</td>
@@ -31,6 +31,11 @@
        <td>{{ .LastHeatbeatTime | formatTime }}</td>
        <td>
               <a  href="javascript:void(0)" class="edit" data-id="{{ .Id }}">编辑标签</a>&nbsp;&nbsp;
+              {{if .Disable }}
+              <a href="javascript:void(0)" class="toggle" data-id="{{ .Id }}">启用</a>&nbsp;&nbsp;
+              {{else}}
+              <a href="javascript:void(0)" class="toggle" data-id="{{ .Id }}">停用</a>&nbsp;&nbsp;
+              {{end}}
               <a href="javascript:void(0)" class="delete" data-id="{{ .Id }}">删除</a>
         </td>
        </tr>
@@ -110,13 +115,36 @@
              $.ajax({
                           url: '/servers/'  + id,
                           type: 'PUT',
-                          dataType: 'JSON',
+                          dataType: 'json',
                           data: {id: id, tags : tags },
                           success: function(data){
                             if (data.success) {
                               $this.closest('tr').prev().find('td').eq(3).html(tags);
                               $(this).closest('tr').find('input').val(tags);
                               $this.closest('tr').find('.cancel').trigger('click');
+                              alert('更新成功');
+                            } else {
+                              alert('更新失败');
+                            }
+                          }
+              });
+        });
+        $('.toggle').click(function() {
+             $this = $(this);
+             var id = $(this).attr('data-id');
+             $.ajax({
+                          url: '/servers/'  + id + '/toggle',
+                          type: 'PUT',
+                          dataType: 'json',
+                          success: function(data){
+                            if (data.success) {
+                              if ($this.text() == '启用') {
+                                  $this.closest('tr').removeClass('active');
+                                  $this.html('停用');
+                              } else {
+                                  $this.closest('tr').addClass('active');
+                                  $this.html('启用');
+                              }
                               alert('更新成功');
                             } else {
                               alert('更新失败');

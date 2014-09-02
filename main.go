@@ -69,6 +69,9 @@ func main() {
 					return strings.Contains(","+args[0].(string)+",", ","+args[1].(string)+",")
 				},
 				"getServerStatusClass": func(args ...interface{}) template.HTML {
+					if args[1].(bool) {
+						return "active"
+					}
 					if time.Now().Sub(args[0].(time.Time).Local()).Minutes() > 5 {
 						return "danger"
 					}
@@ -80,7 +83,7 @@ func main() {
 
 	m.Get("/", func(username AuthUser, r render.Render) {
 		var confs []SystemConfig
-		db.Find(&confs)
+		db.Order("id desc").Find(&confs)
 
 		for i := 0; i < len(confs); i++ {
 			var deploy Deploy
@@ -278,65 +281,11 @@ func main() {
 		data := map[string]interface{}{"username": username, "tags": tags, "conf": conf}
 		r.HTML(200, "config", data)
 	})
-	m.Get("/servers", func(username AuthUser, r render.Render) {
-		var servers []Server
-		db.Find(&servers)
+	m.Get("/servers", GetServers)
+	m.Delete("/servers/:id", DeleteServer)
+	m.Put("/servers/:id", binding.Bind(Server{}), EditServer)
+	m.Put("/servers/:id/toggle", ToggleServer)
 
-		data := map[string]interface{}{"username": username, "servers": servers}
-		r.HTML(200, "servers", data)
-	})
-	m.Delete("/servers/:id", func(params martini.Params, r render.Render) {
-		id, err := strconv.Atoi(params["id"])
-		if err != nil {
-			r.JSON(200, ActionMessage{
-				Success: false,
-				Message: "id参数错误",
-			})
-			return
-		}
-
-		err = db.Delete(&Server{Id: id}).Error
-		if err != nil {
-			r.JSON(200, ActionMessage{
-				Success: false,
-				Message: "删除出错." + err.Error(),
-			})
-			return
-		}
-		r.JSON(200, ActionMessage{
-			Success: true,
-			Message: "成功",
-		})
-	})
-	m.Put("/servers/:id", binding.Bind(Server{}), func(params martini.Params, server Server, r render.Render) {
-		id, err := strconv.Atoi(params["id"])
-		if err != nil {
-			r.JSON(200, ActionMessage{
-				Success: false,
-				Message: "id参数错误",
-			})
-			return
-		}
-
-		server.Tags = strings.TrimLeft(server.Tags, ",")
-		server.Tags = strings.TrimRight(server.Tags, ",")
-		var temp Server
-		db.First(&temp, id)
-		temp.Tags = server.Tags
-		err = db.Save(&temp).Error
-		if err != nil {
-			r.JSON(200, ActionMessage{
-				Success: false,
-				Message: "更新出错." + err.Error(),
-			})
-			return
-		}
-		r.JSON(200, ActionMessage{
-			Success: true,
-			Message: "成功",
-			Data:    temp,
-		})
-	})
 	m.Get("/api/heartbeat", Heartbeat)
 	m.Get("/avatar/.*", GenAvatar)
 	m.Run()
