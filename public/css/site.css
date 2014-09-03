@@ -57,7 +57,7 @@ color: #ddd;
 font-size: 20px !important;
 position: relative;
 margin-left: 20px;
-top:5px;
+top:0px;
 }
 .form-horizontal .form-group {
 margin-right: -15px;
@@ -372,13 +372,13 @@ background-image: -o-linear-gradient(#fff, #fafafa);
     font-size: 20px !important;
     color: #777 !important;
 }
-.glyphicon-play {
+.fa-play {
     display: inline-block;
 text-decoration: inherit;
 line-height: 1em;
 content: "\f04b";
 margin-right: 5px;
-font-size: 18px;
+font-size: 22px;
 color: #3b8;
 -webkit-font-smoothing: antialiased;
 }
@@ -433,13 +433,16 @@ a.star:hover {
     color:#999 !important;
 }
 .project-table .star {
-    display: none;
     top : 10px;
 }
 
-.glyphicon-star {
+.fa-star {
 color: #e65b98;
 }
+.fa {
+    margin-right: 5px;
+}
+
 footer {
     position: fixed;
 bottom: 0;

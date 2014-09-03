@@ -2,13 +2,13 @@
 
       <div class="container-fluid navbar-actions">
         <div class="navbar-header">
-          <span class="navbar-brand" >系统列表<a href="javascript:void(0)" class="star"><span class="glyphicon glyphicon-star-empty"></span></a></span>
+          <span class="navbar-brand" >系统列表<a href="javascript:void(0)" class="star"><i class="fa fa-star-o"></i></a></span>
 
         </div>
         <div class="navbar-collapse collapse">
           <ul class="nav navbar-nav navbar-right">
-            <li><a href="/config"><span class="glyphicon glyphicon-plus"></span>增加系统</a></li>
-            <li><a href="/servers"><span class="glyphicon glyphicon-th-list"></span>服务器列表</a></li>
+            <li><a href="/config"><i class="fa fa-plus"></i>增加系统</a></li>
+            <li><a href="/servers"><i class="fa fa-list"></i>服务器列表</a></li>
           </ul>
         </div>
       </div>
@@ -47,13 +47,11 @@
             </td>
             <td style="font-size: 13px;">{{ .EnableDeploy.CreatedAt | formatTime }}</td>
             <td style="width:10%;padding-top:0px !important;padding-right:20px !important;position:relative; text-align:right;">
-                      <a href="javascript:void(0)" class="star">
                       {{if .IsUserStar }}
-                      <span class="glyphicon glyphicon-star"></span>
+                      <a href="javascript:void(0)" class="star"><i class="fa fa-star"></i></a>
                       {{else}}
-                      <span class="glyphicon glyphicon-star-empty"></span>
+                      <a href="javascript:void(0)" class="star" style="display:none"><i class="fa fa-star-o"></i></a>
                       {{end}}
-                      </a>
             </td>
           </tr>
           {{end}}
@@ -68,22 +66,30 @@
             location.href='/build/' + id;
         })
         .mouseover(function() {
-            $(this).find('.star').show();
+          if ($(this).find('.star>i').hasClass('fa-star-o')) {
+              $(this).find('.star').show();
+          }
         })
         .mouseout(function() {
-            $(this).find('.star').hide();
+            if ($(this).find('.star>i').hasClass('fa-star-o')) {
+                $(this).find('.star').hide();
+            }
         });
+
         $('.navbar-brand .star').click(function() {
-             if ($(this).find('span').hasClass('glyphicon-star-empty')) {
-                    $(this).find('span').removeClass('glyphicon-star-empty').addClass('glyphicon-star');
+             if ($(this).find('i').hasClass('fa-star-o')) {
+                    $(this).find('i').removeClass('fa-star-o').addClass('fa-star');
                     // 显示用户收藏的系统
                     $('tr.notstar').hide();
+                    set_cookie('showstar', 1, 365)
              }  else {
-                    $(this).find('span').removeClass('glyphicon-star').addClass('glyphicon-star-empty');
+                    $(this).find('i').removeClass('fa-star').addClass('fa-star-o');
                     $('tr.notstar').show();
+                    set_cookie('showstar', 1, -1)
              }
 
         });
+
         $('.project-table .star').click(function() {
             $this = $(this);
              var id = $(this).closest('tr').attr('data-id');
@@ -93,11 +99,11 @@
                           dataType: 'json',
                           success: function(data){
                             if (data.success) {
-                              if ($this.find('span').hasClass('glyphicon-star-empty')) {
-                                  $this.find('span').removeClass('glyphicon-star-empty').addClass('glyphicon-star');
+                              if ($this.find('i').hasClass('fa-star-o')) {
+                                  $this.find('i').removeClass('fa-star-o').addClass('fa-star');
                                   $this.closest('tr').removeClass('notstar');
                               } else {
-                                  $this.find('span').removeClass('glyphicon-star').addClass('glyphicon-star-empty');
+                                  $this.find('i').removeClass('fa-star').addClass('fa-star-o');
                                   $this.closest('tr').addClass('notstar');
                               }
                             } else {
@@ -107,5 +113,26 @@
               });
             return false;
         });
+
+        if (get_cookie('showstar') != '') {
+             $('.navbar-brand .star').trigger('click');
+        }
     });
+    function set_cookie(key, value, expiredays){
+              var exdate=new Date();
+              exdate.setDate(exdate.getDate() + expiredays);
+              document.cookie=key+ "=" + escape(value) + ((expiredays==null) ? "" : ";expires="+exdate.toGMTString());
+    }
+    function get_cookie(key){
+          if (document.cookie.length>0){　
+　　　　　　c_start=document.cookie.indexOf(key + "=")　
+　　　　　　if (c_start!=-1){
+　　　　　　　　c_start=c_start + key.length+1　　
+　　　　　　　　c_end=document.cookie.indexOf(";",c_start)
+　　　　　　　　if (c_end==-1) c_end=document.cookie.length　　
+　　　　　　　　return unescape(document.cookie.substring(c_start,c_end))
+　　　　　　}
+　　　　}
+　　　　return ""
+　　}
     </script>

@@ -7,7 +7,7 @@
         </div>
         <div class="navbar-collapse collapse">
           <ul class="nav navbar-nav navbar-right">
-            <li><a href="/config/{{ $.conf.Id }}"><span class="glyphicon glyphicon-wrench"></span>编辑配置</a></li>
+            <li><a href="/config/{{ $.conf.Id }}"><i class="fa fa-wrench"></i>编辑配置</a></li>
           </ul>
         </div>
       </div>
@@ -18,26 +18,26 @@
             <div id="left-wapper">
               {{if $.conf.EnableDevStage }}
               <div class="row stage-progress">
-                  <h3><span class="glyphicon glyphicon-chevron-right"></span>发布到开发环境</h3>
+                  <h3><i class="fa fa-angle-right"></i>发布到开发环境</h3>
                   <div class="row stage-run">
-                  <a href="javascript:void(0)" class="deploy" data-id="{{ $.conf.Id }}" data-type="dev"><span class="glyphicon glyphicon-play"></span>执行</a>
+                  <a href="javascript:void(0)" class="deploy" data-id="{{ $.conf.Id }}" data-type="dev"><i class="fa fa-play"></i>执行</a>
                   </div>
               </div>
               {{end}}
               {{if $.conf.EnableProdStage }}
               <div class="row stage-progress">
-                  <h3><span class="glyphicon glyphicon-chevron-right"></span>发布到产品环境</h3>
+                  <h3><i class="fa fa-angle-right"></i>发布到产品环境</h3>
                   <div class="row stage-run">
-                  <a href="javascript:void(0)" class="deploy" data-id="{{ $.conf.Id }}"  data-type="prod"><span class="glyphicon glyphicon-play"></span>执行</a>
+                  <a href="javascript:void(0)" class="deploy" data-id="{{ $.conf.Id }}"  data-type="prod"><i class="fa fa-play"></i>执行</a>
                   </div>
               </div>
               {{end}}
               {{if not  $.conf.EnableDevStage }}
               {{if not  $.conf.EnableProdStage  }}
               <div class="row stage-progress">
-                  <h3><span class="glyphicon glyphicon-chevron-right"></span>发布</h3>
+                  <h3><i class="fa fa-angle-right"></i>发布</h3>
                   <div class="row stage-run">
-                  <a href="javascript:void(0)"  class="deploy"  data-id="{{ $.conf.Id }}"  data-type=""><span class="glyphicon glyphicon-play"></span>执行</a>
+                  <a href="javascript:void(0)"  class="deploy"  data-id="{{ $.conf.Id }}"  data-type=""><i class="fa fa-play"></i>执行</a>
                   </div>
               </div>
                {{end}}
@@ -99,10 +99,10 @@
               </table>
 
               <div class="alert alert-success" role="alert" style="margin-bottom:10px; display:none">
-              <span class="glyphicon glyphicon-ok"></span>&nbsp;&nbsp;部署成功╮(￣▽￣)╭</div>
+              <i class="fa fa-check"></i>&nbsp;&nbsp;部署成功╮(￣▽￣)╭</div>
 
               <div class="alert alert-danger" role="alert" style="margin-bottom:10px; display:none">
-              <span class="glyphicon glyphicon-remove"></span>&nbsp;&nbsp;部署失败！(╯￣Д￣)╯╘═╛ </div>
+              <i class="fa fa-close"></i>&nbsp;&nbsp;部署失败！(╯￣Д￣)╯╘═╛ </div>
 
               <pre id="deploy-shell"></pre>
 
@@ -120,6 +120,8 @@
 
               $('.alert-success').hide();
               $('.alert-danger').hide();
+
+              notify_loading('部署进行中...');
 
               var id = $(this).attr('data-id');
               var type = $(this).attr('data-type');
