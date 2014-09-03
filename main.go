@@ -89,7 +89,7 @@ func main() {
 
 		for i := 0; i < len(confs); i++ {
 			var deploy Deploy
-			db.Select("id, version, operator, status, created_at").First(&deploy, Deploy{SystemId: confs[i].Id, Enable: true})
+			db.Order("id desc").Select("id, version, operator, status, created_at").First(&deploy, Deploy{SystemId: confs[i].Id, Enable: true})
 			confs[i].EnableDeploy = deploy
 
 			var star UserStar

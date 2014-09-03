@@ -219,7 +219,7 @@ func (s *ShellCommand) Git(dest string, repo string) *ShellCommand {
 func (s *ShellCommand) GitCopy(currentDir string, dest string, repo string) *ShellCommand {
 	cmd := `
             if [ -d "%s" ]; then
-                cp -a %s/*  %s
+                cp -a %s/.  %s
                 cd %s
                 git remote update
             else
@@ -263,7 +263,7 @@ func (s *ShellCommand) Svn(dest string, repo string, username string, password s
 func (s *ShellCommand) SvnCopy(currentDir string, dest string, repo string, username string, password string) *ShellCommand {
 	cmd := `
             if [ -d "%s" ]; then
-                cp -a %s/*  %s
+                cp -a %s/.  %s
                 cd %s
                 svn up --username %s --password %s --no-auth-cache
             else
