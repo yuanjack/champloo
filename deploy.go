@@ -55,6 +55,8 @@ func executeDeploy(stage string, username AuthUser, params martini.Params, r ren
 	version := time.Now().Format("20060102150405")
 	deploy := Deploy{
 		SystemId: id,
+		Stage:    stage,
+		Operator: string(username),
 		Version:  version,
 	}
 	err := db.Save(&deploy).Error
@@ -75,7 +77,18 @@ func executeDeploy(stage string, username AuthUser, params martini.Params, r ren
 	if strings.Contains(conf.Repo, ".git") {
 		switch conf.Way {
 		case "copy":
-			cmds.GitCopy(currentDir, versionDir, conf.Repo)
+			cmds.CopyNoHalt(currentDir, versionDir)
+			// 删除旧共享目录，要不很容易因为共享目录代码冲突导致update不了
+			if strings.TrimSpace(conf.Shared) != "" {
+				paths := strings.Split(conf.Shared, "\n")
+				for _, path := range paths {
+					sharePath := strings.TrimSpace(path)
+					sharePath = strings.Replace(sharePath, "$path", versionDir, -1)
+
+					cmds.Rm(sharePath)
+				}
+			}
+			cmds.GitCopyUpdate(currentDir, versionDir, conf.Repo)
 		default:
 			cmds.Git(versionDir, conf.Repo)
 		}
@@ -83,7 +96,18 @@ func executeDeploy(stage string, username AuthUser, params martini.Params, r ren
 	} else {
 		switch conf.Way {
 		case "copy":
-			cmds.SvnCopy(currentDir, versionDir, conf.Repo, conf.UserName, conf.Password)
+			cmds.CopyNoHalt(currentDir, versionDir)
+			// 删除旧共享目录，要不很容易因为共享目录代码冲突导致update不了
+			if strings.TrimSpace(conf.Shared) != "" {
+				paths := strings.Split(conf.Shared, "\n")
+				for _, path := range paths {
+					sharePath := strings.TrimSpace(path)
+					sharePath = strings.Replace(sharePath, "$path", versionDir, -1)
+
+					cmds.Rm(sharePath)
+				}
+			}
+			cmds.SvnCopyUpdate(currentDir, versionDir, conf.Repo, conf.UserName, conf.Password)
 		default:
 			cmds.Svn(versionDir, conf.Repo, conf.UserName, conf.Password)
 		}
@@ -219,6 +243,8 @@ func executeDeployUpdate(stage string, username AuthUser, params martini.Params,
 	if deploy.Id <= 0 {
 		deploy = Deploy{
 			SystemId: id,
+			Stage:    stage,
+			Operator: string(username),
 			Version:  version,
 		}
 		err := db.Save(&deploy).Error
@@ -372,7 +398,7 @@ func ExecuteRollback(username AuthUser, params martini.Params, r render.Render) 
 
 	cmds := NewShellCommand()
 	// 判断该版本目录是否存在，存在直接回滚
-	cmds.Rollback(versionDir, currentDir)
+	cmds.ExistDir(versionDir).Rollback(versionDir, currentDir)
 
 	// 取对应该tag的所有服务器
 	servers := getTagServers(tags)
@@ -430,4 +456,45 @@ func GetDeployLog(params martini.Params, r render.Render) {
 	data["output"] = deploy.Output
 	r.JSON(200, data)
 
+}
+
+func CancelDeploy(params martini.Params, r render.Render) {
+	id, _ := strconv.Atoi(params["id"])
+
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	var deploy Deploy
+	err := db.First(&deploy, id).Error
+	if err != nil {
+		sendFailMsg(r, "取消部署失败."+err.Error(), "")
+		return
+	}
+
+	deploy.Status = -1
+	db.Save(&deploy)
+
+	s, found := sessions[deploy.SystemId]
+	if found && !s.IsComplete {
+		sessions[deploy.SystemId].Cancel()
+		sessions[deploy.SystemId].Success = false
+		sessions[deploy.SystemId].IsComplete = true
+	}
+	sendSuccessMsg(r, "取消部署成功.")
+	return
+
+}
+
+func isDeploying(systemid int) bool {
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	s, found := sessions[systemid]
+	if !found || s.IsComplete {
+		s = &ShellSession{}
+		sessions[systemid] = s
+		return false
+	}
+
+	return true
 }

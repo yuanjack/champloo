@@ -135,6 +135,7 @@ func main() {
 	m.Post("/deploy/prod/:id", ExecuteDeployProd)
 	m.Get("/deploy/:id/progress", DeployProgress)
 	m.Get("/deploy/:id/log", GetDeployLog)
+	m.Post("/deploy/:id/cancel", CancelDeploy)
 	m.Post("/deploy/:id/rollback", ExecuteRollback)
 	m.Get("/config", NewSystem)
 	m.Post("/config", SaveSystem)
@@ -148,20 +149,6 @@ func main() {
 	m.Get("/api/heartbeat", Heartbeat)
 	m.Get("/avatar/.*", GenAvatar)
 	m.Run()
-}
-
-func isDeploying(systemid int) bool {
-	mutex.Lock()
-	defer mutex.Unlock()
-
-	s, found := sessions[systemid]
-	if !found || s.IsComplete {
-		s = &ShellSession{}
-		sessions[systemid] = s
-		return false
-	}
-
-	return true
 }
 
 func sendSuccessMsg(r render.Render, data interface{}) {

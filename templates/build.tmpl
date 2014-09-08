@@ -90,7 +90,11 @@
                               {{if eq .Status 1 }}
                               <a href="javascript:void(0)" class="rollback" data-id="{{ .Id }}">回滚</a> / <a href="javascript:void(0)" class="viewlog" data-id="{{ .Id }}">查看部署日志</a>
                               {{else}}
-                              &nbsp;&nbsp;--&nbsp;&nbsp;&nbsp;/ <a href="javascript:void(0)" class="viewlog" data-id="{{ .Id }}">查看部署日志</a>
+                                      {{if eq .Status 0 }}
+                                      <a href="javascript:void(0)" class="cancel" data-id="{{ .Id }}">取消</a> / <a href="javascript:void(0)" class="viewlog" data-id="{{ .Id }}">查看部署日志</a>
+                                      {{else}}
+                                      &nbsp;&nbsp;--&nbsp;&nbsp;&nbsp;/ <a href="javascript:void(0)" class="viewlog" data-id="{{ .Id }}">查看部署日志</a>
+                                      {{end}}
                               {{end}}
                         </td>
                   </tr>
@@ -132,7 +136,11 @@
                                 notify_success("部署成功.");
                                 $('.alert-success').show();
                           } else {
-                                notify_error("部署失败.");
+                                if (data.message != '') {
+                                    notify_error(data.message);
+                                } else {
+                                    notify_error("部署失败.");
+                                }
                                 $('.alert-danger').show();
                           }
                   });
@@ -155,6 +163,21 @@
                 $.getJSON('/deploy/' + id + '/log', function(data) {
                          $('#deploy-shell').html(data.output).show();
                   });
+          });
+          $('.cancel').click(function() {
+              if (!confirm('确认取消部署？')) {
+                    return false;
+                }
+
+                var id = $(this).attr('data-id');
+                $.post('/deploy/' + id + '/cancel', function(data) {
+                         if (data.success) {
+                                notify_success("已取消.");
+                                $('.alert-danger').show();
+                          } else {
+                                notify_error("取消失败.");
+                          }
+                  }, 'json');
           });
           $('.rollback').click(function() {
                 if (!confirm('确认要执行回滚到该版本吗？')) {

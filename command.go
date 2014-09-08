@@ -14,6 +14,7 @@ type ShellSession struct {
 	CommandCount   int
 	ExecuteResult  map[Server]ShellCommand
 	IsComplete     bool // 是否全部执行完成
+	IsCancel       bool //  是否已取消
 	Success        bool
 	ExecutedCmdNum int // 已执行的命令数
 }
@@ -49,7 +50,7 @@ func (s *ShellSession) Run() {
 			}
 		}
 
-		if allServerDisable {
+		if allServerDisable || s.IsCancel {
 			s.IsComplete = true
 			s.Success = false
 			return
@@ -89,7 +90,7 @@ func (s *ShellSession) ParallelRun() {
 		wg.Wait()
 
 		//  判断是否有命令出错，需中断执行
-		if isHalt || allServerDisable {
+		if isHalt || allServerDisable || s.IsCancel {
 			s.IsComplete = true
 			s.Success = false
 			return
@@ -97,6 +98,10 @@ func (s *ShellSession) ParallelRun() {
 	}
 	s.Success = true
 	s.IsComplete = true
+}
+
+func (s *ShellSession) Cancel() {
+	s.IsCancel = true
 }
 
 func (s *ShellSession) Output() string {
@@ -109,6 +114,7 @@ func (s *ShellSession) Output() string {
 		allServerDisable := true
 		cmdstr := ""
 		outputstr := ""
+		errorstr := ""
 		for server, shell := range s.ExecuteResult {
 			// 已停用服务器不处理
 			if server.Disable {
@@ -125,7 +131,7 @@ func (s *ShellSession) Output() string {
 			if cmd.success {
 				outputstr = cmd.output
 			} else {
-				outputstr += fmt.Sprintf("<span class='server'>[%s]</span> <span class='error'>%s</span>\n", server.Ip, cmd.output)
+				errorstr += fmt.Sprintf("<span class='server'>[%s]</span> <span class='error'>%s</span>\n", server.Ip, cmd.output)
 				allServerSuccess = false
 			}
 		}
@@ -137,6 +143,9 @@ func (s *ShellSession) Output() string {
 
 		output += fmt.Sprintln("<i></i><span>" + cmdstr + "</span>")
 		output += fmt.Sprintln(outputstr)
+		if errorstr != "" {
+			output += fmt.Sprintln(errorstr)
+		}
 		if !allServerSuccess {
 			break
 		}
@@ -207,6 +216,37 @@ func (s *ShellCommand) Rm(path string) *ShellCommand {
 	return s
 }
 
+func (s *ShellCommand) Copy(src string, dest string) *ShellCommand {
+	cmd := `
+            if [ -d "%s" ]; then
+                cp -a %s/.  %s
+            else
+                echo "复制失败，源目录%s不存在."
+                exit 1
+            fi
+             `
+	c := command{
+		cmd:     fmt.Sprintf(cmd, src, src, dest, src),
+		canHalt: true,
+	}
+	s.cmds = append(s.cmds, &c)
+	return s
+}
+
+func (s *ShellCommand) CopyNoHalt(src string, dest string) *ShellCommand {
+	cmd := `
+            if [ -d "%s" ]; then
+                cp -a %s/.  %s
+            fi
+             `
+	c := command{
+		cmd:     fmt.Sprintf(cmd, src, src, dest),
+		canHalt: false,
+	}
+	s.cmds = append(s.cmds, &c)
+	return s
+}
+
 func (s *ShellCommand) Git(dest string, repo string) *ShellCommand {
 	c := command{
 		cmd:     fmt.Sprintf("git clone %s %s", repo, dest),
@@ -216,10 +256,9 @@ func (s *ShellCommand) Git(dest string, repo string) *ShellCommand {
 	return s
 }
 
-func (s *ShellCommand) GitCopy(currentDir string, dest string, repo string) *ShellCommand {
+func (s *ShellCommand) GitCopyUpdate(currentDir string, dest string, repo string) *ShellCommand {
 	cmd := `
             if [ -d "%s" ]; then
-                cp -a %s/.  %s
                 cd %s
                 git remote update
             else
@@ -227,7 +266,7 @@ func (s *ShellCommand) GitCopy(currentDir string, dest string, repo string) *She
             fi
              `
 	c := command{
-		cmd:     fmt.Sprintf(cmd, currentDir, currentDir, dest, dest, repo, dest),
+		cmd:     fmt.Sprintf(cmd, currentDir, dest, repo, dest),
 		canHalt: true,
 	}
 	s.cmds = append(s.cmds, &c)
@@ -260,10 +299,9 @@ func (s *ShellCommand) Svn(dest string, repo string, username string, password s
 	return s
 }
 
-func (s *ShellCommand) SvnCopy(currentDir string, dest string, repo string, username string, password string) *ShellCommand {
+func (s *ShellCommand) SvnCopyUpdate(currentDir string, dest string, repo string, username string, password string) *ShellCommand {
 	cmd := `
             if [ -d "%s" ]; then
-                cp -a %s/.  %s
                 cd %s
                 svn up --username %s --password %s --no-auth-cache
             else
@@ -271,7 +309,7 @@ func (s *ShellCommand) SvnCopy(currentDir string, dest string, repo string, user
             fi
              `
 	c := command{
-		cmd:     fmt.Sprintf(cmd, currentDir, currentDir, dest, dest, username, password, username, password, repo, dest),
+		cmd:     fmt.Sprintf(cmd, currentDir, dest, username, password, username, password, repo, dest),
 		canHalt: true,
 	}
 	s.cmds = append(s.cmds, &c)
@@ -295,6 +333,7 @@ func (s *ShellCommand) SvnUpdate(currentDir string, dest string, repo string, us
 	return s
 }
 
+// cp -Rpn 是为了同步共享目录中新增的文件，但不覆盖已有文件
 func (s *ShellCommand) Shared(srcPath string, sharedDir string) *ShellCommand {
 	src := strings.TrimSpace(srcPath)
 	shared := strings.TrimSpace(sharedDir)
@@ -307,14 +346,17 @@ func (s *ShellCommand) Shared(srcPath string, sharedDir string) *ShellCommand {
                             exit 1
                     fi
 
-                    cp -R  -p  -f %s %s
+                    cp -Rpf  --preserve=all %s %s
+                else
+                    cp -Rpn  --preserve=all %s %s
                 fi
+
 
                 rm -rf %s
                 ln -s %s %s
                 `
 	c := command{
-		cmd:     fmt.Sprintf(cmd, dest, src, src, src, shared, src, dest, src),
+		cmd:     fmt.Sprintf(cmd, dest, src, src, src, shared, src, shared, src, dest, src),
 		canHalt: true,
 	}
 	s.cmds = append(s.cmds, &c)
@@ -340,6 +382,21 @@ func (s *ShellCommand) ClearBackup(dir string, leaveNum int) *ShellCommand {
             `
 	c := command{
 		cmd:     fmt.Sprintf(cmd, dir, leaveNum),
+		canHalt: true,
+	}
+	s.cmds = append(s.cmds, &c)
+	return s
+}
+
+func (s *ShellCommand) ExistDir(dir string) *ShellCommand {
+	cmd := `
+            if [ ! -d "%s" ]; then
+                    echo "目录%s不存在."
+                    exit 1
+            fi
+            `
+	c := command{
+		cmd:     fmt.Sprintf(cmd, dir, dir),
 		canHalt: true,
 	}
 	s.cmds = append(s.cmds, &c)
