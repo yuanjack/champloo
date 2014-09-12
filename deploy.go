@@ -78,16 +78,7 @@ func executeDeploy(stage string, username AuthUser, params martini.Params, r ren
 		switch conf.Way {
 		case "copy":
 			cmds.CopyNoHalt(currentDir, versionDir)
-			// 删除旧共享目录，要不很容易因为共享目录代码冲突导致update不了
-			if strings.TrimSpace(conf.Shared) != "" {
-				paths := strings.Split(conf.Shared, "\n")
-				for _, path := range paths {
-					sharePath := strings.TrimSpace(path)
-					sharePath = strings.Replace(sharePath, "$path", versionDir, -1)
 
-					cmds.Rm(sharePath)
-				}
-			}
 			cmds.GitCopyUpdate(currentDir, versionDir, conf.Repo)
 		default:
 			cmds.Git(versionDir, conf.Repo)
@@ -97,16 +88,7 @@ func executeDeploy(stage string, username AuthUser, params martini.Params, r ren
 		switch conf.Way {
 		case "copy":
 			cmds.CopyNoHalt(currentDir, versionDir)
-			// 删除旧共享目录，要不很容易因为共享目录代码冲突导致update不了
-			if strings.TrimSpace(conf.Shared) != "" {
-				paths := strings.Split(conf.Shared, "\n")
-				for _, path := range paths {
-					sharePath := strings.TrimSpace(path)
-					sharePath = strings.Replace(sharePath, "$path", versionDir, -1)
 
-					cmds.Rm(sharePath)
-				}
-			}
 			cmds.SvnCopyUpdate(currentDir, versionDir, conf.Repo, conf.UserName, conf.Password)
 		default:
 			cmds.Svn(versionDir, conf.Repo, conf.UserName, conf.Password)
