@@ -18,9 +18,10 @@ margin-right: 20px;
 .profile {
     padding: 5px 0px 5px 20px;
 }
-.profile a {
+.profile a:link, .profile a:hover,.profile a:visited, .profile a:focus{
     text-decoration: none;
     overflow: hidden;
+    border: 0px;
 }
 .profile .dropdown-menu {
 background: white;
@@ -37,7 +38,7 @@ border-radius: 2px;
 -webkit-box-shadow: 0 2px 4px rgba(180,180,180,0.1);
 -moz-box-shadow: 0 2px 4px rgba(180,180,180,0.1);
 box-shadow: 0 2px 4px rgba(180,180,180,0.1);
-overflow: hidden;
+/*overflow: hidden;*/
 }
 .profile .dropdown-menu>li {
     border: 0px !important;
@@ -45,6 +46,32 @@ overflow: hidden;
 .profile .dropdown-menu>li>a {
     background-color: white !important;
     color: #555;
+}
+.action-list>li {
+    padding: 0px;
+}
+.action-list>li>a {
+    padding: 10px 0px 10px 10px;
+
+}
+
+.action-list>li>a:hover {
+background-color: rgba(128,128,128,0.5) !important;
+}
+
+.action-list:before {
+display: inline-block;
+position: absolute;
+top: -5px;
+right: 14px;
+width: 0;
+height: 0;
+vertical-align: top;
+content: "";
+border-bottom: 5px solid white;
+border-left: 5px solid transparent;
+border-right: 5px solid transparent;
+z-index: 999;
 }
 .arrow {
  font-weight: normal  !important;
@@ -260,6 +287,11 @@ border-radius: 3px;
 color: #666;
 font-size: 11px;
 }
+div.tip {
+    margin-left: 450px;
+margin-top : -25px;
+position: absolute;
+}
 
 .shell {
 list-style: none;
@@ -442,6 +474,38 @@ color: #e65b98;
 .fa {
     margin-right: 5px;
 }
+
+
+.auth-form-header {
+position: relative;
+padding: 10px 20px;
+margin: 0;
+color: #fff;
+text-shadow: 0 -1px 0 rgba(0,0,0,0.3);
+background-color: #565656;
+border: 1px solid #768995;
+border-radius: 3px 3px 0 0;
+}
+.auth-form-header h1 {
+margin-top: 0;
+margin-bottom: 0;
+font-size: 16px;
+}
+
+.auth-form {
+width: 400px;
+margin: 60px auto;
+}
+
+.auth-form-body {
+padding: 20px;
+font-size: 14px;
+background-color: #fff;
+border: 1px solid #d8dee2;
+border-top: 0;
+border-radius: 0 0 3px 3px;
+}
+
 
 footer {
     position: fixed;

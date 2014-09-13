@@ -11,21 +11,21 @@ import (
 )
 
 // 默认发布
-func ExecuteDeployDefault(username AuthUser, params martini.Params, r render.Render) {
+func ExecuteDeployDefault(username string, params martini.Params, r render.Render) {
 	executeDeploy("", username, params, r)
 }
 
 // 发布到开发场景(Dev)
-func ExecuteDeployDev(username AuthUser, params martini.Params, r render.Render) {
+func ExecuteDeployDev(username string, params martini.Params, r render.Render) {
 	executeDeploy("dev", username, params, r)
 }
 
 // 发布到产品场景(Prod)
-func ExecuteDeployProd(username AuthUser, params martini.Params, r render.Render) {
+func ExecuteDeployProd(username string, params martini.Params, r render.Render) {
 	executeDeploy("prod", username, params, r)
 }
 
-func executeDeploy(stage string, username AuthUser, params martini.Params, r render.Render) {
+func executeDeploy(stage string, username string, params martini.Params, r render.Render) {
 	id, _ := strconv.Atoi(params["id"])
 
 	var conf SystemConfig
@@ -196,7 +196,7 @@ func executeDeploy(stage string, username AuthUser, params martini.Params, r ren
 
 }
 
-func executeDeployUpdate(stage string, username AuthUser, params martini.Params, r render.Render) {
+func executeDeployUpdate(stage string, username string, params martini.Params, r render.Render) {
 	id, _ := strconv.Atoi(params["id"])
 
 	if isDeploying(id) {
@@ -345,7 +345,7 @@ func executeDeployUpdate(stage string, username AuthUser, params martini.Params,
 }
 
 // 回滚部署
-func ExecuteRollback(username AuthUser, params martini.Params, r render.Render) {
+func ExecuteRollback(username string, params martini.Params, r render.Render) {
 	deployId, _ := strconv.Atoi(params["id"])
 
 	var deploy Deploy

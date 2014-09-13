@@ -27,8 +27,8 @@ type Server struct {
 type SystemConfig struct {
 	Id              int    `gorm:"primary_key:yes" form:"id"`
 	Name            string `sql:"not null;unique" form:"name"`
-	EnableDevStage  bool   `form:"dev-stage"`
-	EnableProdStage bool   `form:"prod-stage"`
+	EnableDevStage  bool   `sql:"not null" form:"dev-stage"`
+	EnableProdStage bool   `sql:"not null" form:"prod-stage"`
 	Way             string `form:"way"`
 	Path            string `form:"path"`
 	Shared          string `form:"shared"`
@@ -67,6 +67,7 @@ type User struct {
 	Password  string `form:"password"`
 	Avatar    string `form:"avatar"`
 	Email     string `form:"email"`
+	IsAdmin   bool   `sql:"not null" form:"isadmin"`
 	CreatedAt time.Time
 }
 
@@ -91,6 +92,7 @@ func InitDb() error {
 		db.Save(User{
 			Name:      "admin",
 			Password:  "123",
+			IsAdmin:   true,
 			CreatedAt: time.Now(),
 		})
 	}

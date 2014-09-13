@@ -1,0 +1,68 @@
+
+      <div class="container-fluid navbar-actions">
+        <div class="navbar-header">
+          <a href="/" class="back">返回</a>
+          <span class="navbar-brand" >用户资料</span>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="javascript:void(0)" class="save" id="save"><i class="fa fa-save"></i>保存</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+
+    <div id="content" class="container-fluid">
+        <div id="wapper">
+                <form class="form-horizontal" role="form">
+                      <div class="form-group">
+                        <label  class="col-sm-2 control-label">用户名</label>
+                        <div class="col-sm-10">
+                          <input  class="form-control"  value="{{ $.user.Name }}" name="name" readonly="readonly">
+                          <input type="hidden" value="{{ $.user.Id }}" name="id">
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label for="avatar" class="col-sm-2 control-label">头像</label>
+                        <div class="col-sm-10">
+                          <input type="email" class="form-control" id="avatar" name="avatar" value="{{ $.user.Avatar }}" placeholder="请填入外链头像地址，推荐图片大小为48x48">
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label for="email" class="col-sm-2 control-label">邮箱</label>
+                        <div class="col-sm-10">
+                          <input type="email" class="form-control" id="email" name="email" placeholder="邮箱地址" value="{{ $.user.Email }}">
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label for="password" class="col-sm-2 control-label">密码</label>
+                        <div class="col-sm-10">
+                          <input type="password" class="form-control" id="password" name="password" value="{{ $.user.Password }}" >
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-10">
+                          <div class="checkbox">
+                            <label>
+                              <input type="checkbox" name="isadmin" {{if $.user.IsAdmin}} checked="checked" {{end}}> 是否管理员
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                </form>
+      </div>
+    </div>
+
+
+<script type="text/javascript">
+            $('#save').click(function() {
+                  $.post('/users', $('form').serialize(), function(data) {
+                              if  (data.success)  {
+                                   notify('保存成功.');
+                              } else {
+                                   notify_error(data.message);
+                              }
+                  }, 'JSON');
+          });
+</script>

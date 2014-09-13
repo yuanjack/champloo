@@ -1,42 +1,57 @@
 package main
 
 import (
-	"encoding/base64"
-	"github.com/go-martini/martini"
 	"net/http"
 	"strings"
+
+	"github.com/go-martini/martini"
+	"github.com/martini-contrib/render"
+	webSessions "github.com/martini-contrib/sessions"
 )
 
-type AuthUser string
+func AuthFunc(req *http.Request, session webSessions.Session, r render.Render, c martini.Context) bool {
+	if strings.HasPrefix(req.RequestURI, "/api") || strings.HasPrefix(req.RequestURI, "/login") {
+		return true
+	}
 
-var BasicRealm = "Authorization Required"
+	user := session.Get("auth_user")
+	if user == nil {
+		r.Redirect("/login", 302)
+		return true
+	}
 
-func BasicFunc(authfn func(string, string) bool) martini.Handler {
-	return func(res http.ResponseWriter, req *http.Request, c martini.Context) {
-		if strings.HasPrefix(req.RequestURI, "/api") {
-			return
-		}
+	session.Set("auth_user", user)
+	c.Map(user.(string))
+	return true
 
-		auth := req.Header.Get("Authorization")
-		if len(auth) < 6 || auth[:6] != "Basic " {
-			unauthorized(res)
-			return
-		}
-		b, err := base64.StdEncoding.DecodeString(auth[6:])
-		if err != nil {
-			unauthorized(res)
-			return
-		}
-		tokens := strings.SplitN(string(b), ":", 2)
-		if len(tokens) != 2 || !authfn(tokens[0], tokens[1]) {
-			unauthorized(res)
-			return
-		}
-		c.Map(AuthUser(tokens[0]))
+}
+func Login(params martini.Params, r render.Render) {
+	data := map[string]interface{}{"username": "", "msg": ""}
+	r.HTML(200, "login", data)
+}
+func Signin(req *http.Request, session webSessions.Session, r render.Render) {
+	req.ParseForm()
+	username := req.PostForm.Get("name")
+	password := req.PostForm.Get("password")
+
+	var user User
+	db.First(&user, User{Name: username})
+	if user.Id <= 0 {
+		data := map[string]interface{}{"username": "", "msg": "User not found!"}
+		r.HTML(200, "login", data)
+		return
+	}
+
+	if password == user.Password {
+		session.Set("auth_user", username)
+		r.Redirect("/", 302)
+	} else {
+		data := map[string]interface{}{"username": "", "msg": "Incorrent password."}
+		r.HTML(200, "login", data)
 	}
 }
+func Signout(session webSessions.Session, r render.Render) {
+	session.Delete("auth_user")
 
-func unauthorized(res http.ResponseWriter) {
-	res.Header().Set("WWW-Authenticate", "Basic realm=\""+BasicRealm+"\"")
-	http.Error(res, "Not Authorized", http.StatusUnauthorized)
+	r.Redirect("/login", 302)
 }

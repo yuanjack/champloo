@@ -33,7 +33,7 @@
             <table class="table table-hover">
             <thead>
             <tr>
-              <th style="width:5%">序号</th><th>用户名</th><th>密码</th><th>创建时间</th><th style="width:10%">操作</th>
+              <th style="width:5%">序号</th><th>用户名</th><th>邮箱</th><th>管理员</th><th>创建时间</th><th style="width:10%">操作</th>
             </tr>
             </thead>
             <tbody>
@@ -41,9 +41,30 @@
             <tr>
                   <td>{{ .Id }}</td>
                   <td><img src="/avatar/{{ .Name }}.png?w=48" alt="{{ .Name }}" width="24px"  height="24px" />&nbsp;&nbsp;{{ .Name }}</td>
-                  <td>***</td>
+                  <td>{{ .Email }}</td>
+                  <td>
+                          {{if ne .Name "admin"}}
+                                {{if .IsAdmin }}
+                                <label>
+                                  <input type="checkbox" class="ckadmin" data-id="{{ .Id }}" checked="checked">
+                                </label>
+                                {{else}}
+                                <label>
+                                  <input type="checkbox" class="ckadmin" data-id="{{ .Id }}">
+                                </label>
+                                {{end}}
+                          {{else}}
+                          <label>
+                            <input type="checkbox"  disabled="disable" checked="checked">
+                          </label>
+                          {{end}}
+                  </td>
                   <td>{{ .CreatedAt | formatTime  }}</td>
-                  <td></td>
+                  <td>
+                      {{if ne .Name "admin"}}
+                      <a href="javascript:false" class="delete" data-id="{{ .Id }}"><i class="fa fa-trash-o"></i>删除</a>
+                      {{end}}
+                  </td>
             </tr>
             {{end}}
             </tbody>
@@ -59,8 +80,8 @@
                        notify_error('用户名不能为空');
                        return;
                   }
-                  if (! /[a-z]+/i.test($('input[name=name]').val() )) {
-                      notify_error('用户名只能用小写英文字符');
+                  if (! /[a-z0-9]+/i.test($('input[name=name]').val() )) {
+                      notify_error('用户名只能用小写英文字符和数字组成');
                       return;
                   }
                   $.post('/users', $(this).closest('form').serialize(), function(data) {
@@ -68,9 +89,50 @@
                                    notify('保存成功.');
                                    location.href = location.href;
                               } else {
-                                   alert(data.message);
+                                   notify_error(data.message);
                               }
                   }, 'JSON');
           });
+         $('.delete').on('click', function() {
+              if (!confirm('确认要删除吗？')) {
+                return false;
+              }
+
+              $this = $(this);
+              var id = $this.attr('data-id');
+              $.ajax({
+                        url: '/users/'  + id,
+                        type: 'DELETE',
+                        dataType: 'JSON',
+                        success: function(data){
+                          if (data.success) {
+                            $tr =  $this.closest('tr');
+                            $tr.css('background', 'red');
+                            $tr.fadeOut( "slow", function() {
+                                $tr.remove();
+                              });
+                          } else {
+                              notify_error('删除失败');
+                          }
+                        }
+              });
+        });
+
+         $('.ckadmin').on('click', function() {
+              $this = $(this);
+              var id = $this.attr('data-id');
+              $.ajax({
+                        url: '/users/'  + id + '/admin/' + (this.checked ? 'enable' : 'disable'),
+                        type: 'PUT',
+                        dataType: 'JSON',
+                        success: function(data){
+                          if (!data.success) {
+                              notify_error('设定失败');
+                          }
+                        }
+              });
+        });
+
+
     });
     </script>

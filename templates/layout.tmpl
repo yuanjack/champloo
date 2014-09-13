@@ -32,21 +32,26 @@
           <a class="navbar-brand logo" href="/">Champloo<i>!</i></a>
         </div>
         <div class="navbar-collapse collapse">
+          {{if ne .username "" }}
           <ul class="nav navbar-nav navbar-right">
+            {{if eq .username "admin"}}
             <li><a href="/users">用户管理</a></li>
+            {{end}}
             <li>
-                      <div class="profile btn-group dropup" >
-                        <a href="#" >
+                      <div class="profile btn-group dropdown" >
+                        <a href="#"  data-toggle="dropdown">
                           <img src="/avatar/{{ .username }}.png?w=48" class="gravatar-image" alt="{{ .username }}" width="38"  height="38" />
                           <span class="user_name">{{ .username }}</span>
                           <i class="fa fa-chevron-down arrow"></i>
                         </a>
-                         <ul class="dropdown-menu" role="menu">
-                              <li><a href="#">退出</a></li>
+                         <ul class="action-list dropdown-menu" role="menu">
+                              <li><a href="/setting"><i class="fa fa-gear"></i>设置</a></li>
+                              <li><a href="/signout"><i class="fa fa-sign-out"></i>退出</a></li>
                         </ul>
                       </div>
                 </li>
           </ul>
+          {{end}}
         </div>
       </div>
 

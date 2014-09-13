@@ -1,0 +1,34 @@
+
+    </div>
+
+    {{if ne .msg "" }}
+    <div class="alert alert-danger" role="alert" style="width: 800px; margin:0 auto;">
+          {{ .msg }}
+    </div>
+     {{end}}
+
+    <div class="auth-form" id="login">
+
+         <div class="auth-form-header">
+            <h1>登录系统</h1>
+          </div>
+          <div class="auth-form-body">
+          <form role="form" action="/login" method="post">
+                <div class="form-group">
+                  <label for="name">帐号</label>
+                  <input  class="form-control" id="name" name="name" >
+                </div>
+                <div class="form-group">
+                <label for="password">密码</label>
+                  <input type="password" class="form-control" id="password" name="password" >
+                </div>
+                <button type="submit" class="btn btn-default">登录</button>
+          </form>
+          </div>
+    </div>
+
+<script>
+   $(window).load(function () {
+        $('#name').focus();
+    });
+</script>

@@ -9,7 +9,7 @@ import (
 	"github.com/martini-contrib/render"
 )
 
-func NewSystem(username AuthUser, r render.Render) {
+func NewSystem(username string, r render.Render) {
 	var servers []Server
 	db.Select("tags").Find(&servers)
 
@@ -100,7 +100,7 @@ func SaveSystem(req *http.Request, params martini.Params, r render.Render) {
 	})
 }
 
-func GetSystemById(username AuthUser, params martini.Params, r render.Render) {
+func GetSystemById(username string, params martini.Params, r render.Render) {
 	id, _ := strconv.Atoi(params["id"])
 
 	var servers []Server
@@ -135,7 +135,7 @@ func GetSystemById(username AuthUser, params martini.Params, r render.Render) {
 	r.HTML(200, "config", data)
 }
 
-func ToggleStarSystem(username AuthUser, params martini.Params, r render.Render) {
+func ToggleStarSystem(username string, params martini.Params, r render.Render) {
 	id, _ := strconv.Atoi(params["id"])
 
 	var user User

@@ -49,29 +49,29 @@
                 <label  class="control-label">场景</label>
                <input id="ckdevelopment" type="checkbox" name="dev-stage"  {{if  .conf.EnableDevStage }} checked="checked" {{end}} rel="tab-dev"><label for="ckdevelopment" class="checkbox-label">开发</label>
                <input id="ckproducttion" type="checkbox"  name="prod-stage"   {{if .conf.EnableProdStage }} checked="checked" {{end}} rel="tab-prod"><label for="ckproducttion" class="checkbox-label">产品</label>
-                <span class="tip">选择场景后，发布的目录结构会改变</span>
+                <div class="tip">选择场景后，发布的目录结构会改变</div>
               </div>
               <div class="form-group">
                 <label class="control-label">部署方式</label>
                <input id="rd-checkout" type="radio" value="checkout" name="way"  {{if eq  .conf.Way "checkout" }} checked="checked" {{end}}><label for="rd-checkout" class="checkbox-label">checkout</label>
                <input id="rd-copy" type="radio" value="copy" name="way" {{if eq  .conf.Way "copy" }} checked="checked" {{end}}><label for="rd-copy" class="checkbox-label">copy</label>
                <input id="rd-update" type="radio" value="update" name="way" {{if eq  .conf.Way "update" }} checked="checked" {{end}}><label for="rd-update" class="checkbox-label">update</label>
-                <span class="tip">checkout:每次checkout一份新代码，copy:复制旧的代码再checkout，update:在原部署目录直接update</span>
+                <div class="tip">checkout:每次checkout一份新代码，copy:复制旧的代码再checkout，update:在原部署目录直接update</div>
               </div>
               <div class="form-group">
                 <label class="control-label">部署路径</label>
                 <input name="path" type="text"  style="width:300px" value="{{ .conf.Path }}">
-                <span class="tip">请填写绝对路径，如/data/wwwroot/example/</span>
+                <div class="tip">请填写绝对路径，如/data/wwwroot/example/</div>
               </div>
               <div class="form-group">
                 <label class="control-label">共享目录</label>
                 <textarea name="shared" type="text"  style="width:300px;" rows="4">{{ .conf.Shared }}</textarea>
-                <span class="tip">变量$path代表当前部署目录，如$path/App/tpl/</span>
+                <div class="tip">变量$path代表当前部署目录，如$path/App/tpl/</div>
               </div>
               <div class="form-group">
                 <label class="control-label">保留版本数目</label>
                 <input name="num" type="text"  value="{{ .conf.BackupNum }}">
-                <span class="tip">超出指定数目的旧版本将会被删除</span>
+                <div class="tip">超出指定数目的旧版本将会被删除</div>
               </div>
 
             </div>
@@ -81,17 +81,17 @@
             <div class="form-group">
               <label class="control-label">版本库路径</label>
               <input name="repo" type="text"   style="width:300px" value="{{ .conf.Repo }}">
-              <span class="tip">Git 或 SVN 源代码http获取路径地址，请确保服务器已正确安装的Git或SVN程序</span>
+              <div class="tip">Git 或 SVN 源代码http获取路径地址，请确保服务器已正确安装的Git或SVN程序</div>
             </div>
             <div class="form-group">
               <label class="control-label">验证用户名</label>
               <input name="username" type="text" value="{{ .conf.UserName }}">
-              <span class="tip">SVN版本库登录帐号，Git不需要</span>
+              <div class="tip">SVN版本库登录帐号，Git不需要</div>
             </div>
             <div class="form-group">
               <label class="control-label">验证密码</label>
               <input name="password" type="password" value="{{ .conf.Password }}">
-              <span class="tip">SVN版本库登录密码，Git不需要</span>
+              <div class="tip">SVN版本库登录密码，Git不需要</div>
             </div>
             </div>
 
@@ -120,8 +120,8 @@
             <div class="stage-edit-section">
                 <h3>部署上线前执行命令</h3>
                 <div class="form-group">
-                 <textarea name="before-cmd" type="text"  rows="10" class="shell">{{ .conf.BeforeCmd }}</textarea>
-                  <div class="tip">每行一条命令，命令会在当前部署版本目录下执行. $path: 当前部署目录, $share: 共享目录, $release: 部署目录</div>
+                 <textarea name="before-cmd" type="text"  rows="10" class="shell">{{ .conf.BeforeCmd }}</textarea><br/>
+                  <span class="tip">每行一条命令，命令会在当前部署版本目录下执行. $path: 当前部署目录, $share: 共享目录, $release: 部署目录</span>
                 </div>
             </div>
 
@@ -143,8 +143,8 @@
             <div class="stage-edit-section">
                 <h3>开发环境 - 部署上线前执行命令</h3>
                 <div class="form-group">
-                 <textarea name="dev-before-cmd" type="text"  rows="10" class="shell">{{ .conf.DevBeforeCmd }}</textarea>
-                 <div class="tip">每行一条命令，命令会在当前部署版本目录下执行. $path: 当前部署目录, $share: 共享目录, $release: 部署目录</div>
+                 <textarea name="dev-before-cmd" type="text"  rows="10" class="shell">{{ .conf.DevBeforeCmd }}</textarea><br/>
+                 <span class="tip">每行一条命令，命令会在当前部署版本目录下执行. $path: 当前部署目录, $share: 共享目录, $release: 部署目录</span>
                 </div>
             </div>
 
@@ -165,8 +165,8 @@
                 <div class="stage-edit-section">
                     <h3>产品环境 - 部署前执行命令</h3>
                     <div class="form-group">
-                     <textarea name="prod-before-cmd" type="text"  rows="10" class="shell">{{ .conf.ProdBeforeCmd }}</textarea>
-                     <div class="tip">每行一条命令，命令会在当前部署版本目录下执行. $path: 当前部署目录, $share: 共享目录, $release: 部署目录</div>
+                     <textarea name="prod-before-cmd" type="text"  rows="10" class="shell">{{ .conf.ProdBeforeCmd }}</textarea><br/>
+                     <span class="tip">每行一条命令，命令会在当前部署版本目录下执行. $path: 当前部署目录, $share: 共享目录, $release: 部署目录</span>
                     </div>
                 </div>
 

@@ -8,7 +8,7 @@ import (
 	"github.com/martini-contrib/render"
 )
 
-func GetServers(username AuthUser, r render.Render) {
+func GetServers(username string, r render.Render) {
 	var servers []Server
 	db.Find(&servers)
 

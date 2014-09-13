@@ -34,7 +34,7 @@ function notify_error (msg) {
             text: msg,
             animate_speed: 'fast',
             stack: false,
-            delay: 1000,
+            delay: 2000,
             hide: true,
             type: 'error',
             width: "150px",

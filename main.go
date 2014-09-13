@@ -12,6 +12,7 @@ import (
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/binding"
 	"github.com/martini-contrib/render"
+	webSessions "github.com/martini-contrib/sessions"
 )
 
 type ActionMessage struct {
@@ -35,15 +36,8 @@ func main() {
 
 	m := martini.Classic()
 	//m.Use(martini.Static("public", martini.StaticOptions{Prefix: "/public"}))
-	m.Use(BasicFunc(func(username string, password string) bool {
-		var user User
-		db.First(&user, User{Name: username})
-		if user.Id <= 0 {
-			return false
-		}
-
-		return username == user.Name && password == user.Password
-	}))
+	store := webSessions.NewCookieStore([]byte("secret_champloo"))
+	m.Use(webSessions.Sessions("champloo_session", store))
 	m.Use(render.Renderer(render.Options{
 		Layout: "layout",
 		Funcs: []template.FuncMap{
@@ -79,8 +73,9 @@ func main() {
 			},
 		},
 	}))
+	m.Use(AuthFunc)
 
-	m.Get("/", func(username AuthUser, r render.Render) {
+	m.Get("/", func(username string, r render.Render) {
 		var confs []SystemConfig
 		db.Order("id desc").Find(&confs)
 
@@ -102,23 +97,16 @@ func main() {
 		data := map[string]interface{}{"username": username, "confs": confs}
 		r.HTML(200, "index", data)
 	})
-	m.Get("/users", func(username AuthUser, r render.Render) {
-		var users []User
-		db.Order("id desc").Find(&users)
+	m.Get("/login", Login)
+	m.Post("/login", Signin)
+	m.Get("/signout", Signout)
+	m.Get("/users", GetUsers)
+	m.Post("/users", binding.Bind(User{}), EditUsers)
+	m.Delete("/users/:id", DeleteUser)
+	m.Get("/setting", UserSetting)
+	m.Put("/users/:id/admin/:action", ToggleSetAdmin)
 
-		data := map[string]interface{}{"username": username, "users": users}
-		r.HTML(200, "user", data)
-	})
-	m.Post("/users", binding.Bind(User{}), func(user User, r render.Render) {
-		user.CreatedAt = time.Now()
-		err := db.Save(&user).Error
-		if user.Id > 0 {
-			sendSuccessMsg(r, "")
-		} else {
-			sendFailMsg(r, "保存失败."+err.Error(), "")
-		}
-	})
-	m.Get("/build/:id", func(username AuthUser, params martini.Params, r render.Render) {
+	m.Get("/build/:id", func(username string, params martini.Params, r render.Render) {
 		id, _ := strconv.Atoi(params["id"])
 
 		var conf SystemConfig
