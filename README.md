@@ -10,22 +10,28 @@ A simple project for deploy php website.
 - Support svn & git
 - Easy to start
 
-## Installation
+- Installation
 
-1. Get lastest version in [Release](https://github.com/cxfksword/champloo/releases) page. 
-2. Install and start the web:
+- Get lastest version in [Release](https://github.com/cxfksword/champloo/releases) page. 
+- Install and start the web:
 ```
 $ ./champloo
 ```
-3. Login into website ```http://localhost:3000``` with default account:```admin```, password:```123```
+- Login into website ```http://localhost:3000``` with default account:```admin```, password:```123```
 
 ## Install client
 
-1. In the deploy server execute shell script:
+- In the deploy server execute shell script:
 ```
 $ wget https://raw.githubusercontent.com/cxfksword/champloo-client/master/install.sh
 $ chmod +x install.sh
 $ ./install.sh
+```
+- Start client service
+```
+$ cd /usr/local/champloo-client
+$ cp app.conf.example app.conf       # change the api point to corrent address
+$ service champloo-client start
 ```
 
 ## Todo
