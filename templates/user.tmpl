@@ -40,7 +40,7 @@
             {{range $.users }}
             <tr>
                   <td>{{ .Id }}</td>
-                  <td><img src="/avatar/{{ .Name }}.png?w=48" alt="{{ .Name }}" width="24px"  height="24px" />&nbsp;&nbsp;{{ .Name }}</td>
+                  <td><img src="{{getavatar .Name }}" alt="{{ .Name }}" width="24px"  height="24px" />&nbsp;&nbsp;{{ .Name }}</td>
                   <td>{{ .Email }}</td>
                   <td>
                           {{if ne .Name "admin"}}

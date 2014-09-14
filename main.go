@@ -55,6 +55,16 @@ func main() {
 					}
 					return args[0].(time.Time).Local().Format("2006/01/02 15:04:05")
 				},
+				"getavatar": func(args ...interface{}) string {
+					name := args[0].(string)
+					var user User
+					err := db.First(&user, User{Name: name}).Error
+					if err != nil || user.Avatar == "" {
+						return fmt.Sprintf("/avatar/%s.png?w=48", name)
+					} else {
+						return user.Avatar
+					}
+				},
 				"unescaped": func(args ...interface{}) template.HTML {
 					return template.HTML(args[0].(string))
 				},

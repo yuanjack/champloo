@@ -56,7 +56,7 @@
                <input id="rd-checkout" type="radio" value="checkout" name="way"  {{if eq  .conf.Way "checkout" }} checked="checked" {{end}}><label for="rd-checkout" class="checkbox-label">checkout</label>
                <input id="rd-copy" type="radio" value="copy" name="way" {{if eq  .conf.Way "copy" }} checked="checked" {{end}}><label for="rd-copy" class="checkbox-label">copy</label>
                <input id="rd-update" type="radio" value="update" name="way" {{if eq  .conf.Way "update" }} checked="checked" {{end}}><label for="rd-update" class="checkbox-label">update</label>
-                <div class="tip">checkout:每次checkout一份新代码，copy:复制旧的代码再checkout，update:在原部署目录直接update</div>
+                <div class="tip">checkout:每次checkout一份新代码，copy:复制旧的代码再update，update:在原部署目录直接update</div>
               </div>
               <div class="form-group">
                 <label class="control-label">部署路径</label>

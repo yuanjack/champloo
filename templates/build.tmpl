@@ -74,7 +74,7 @@
                         </td>
                         <td>{{ .CreatedAt | formatTime }}</td>
                        <td>{{ .ElapsedTime }}秒</td>
-                        <td><img src="/avatar/{{ .Operator }}.png?w=48" alt="{{ .Operator }}" width="24px"  height="24px" />&nbsp;&nbsp;{{ .Operator }}</td>
+                        <td><img src="{{getavatar .Operator }}" alt="{{ .Operator }}" width="24px"  height="24px" />&nbsp;&nbsp;{{ .Operator }}</td>
                         <td>
                         {{if eq .Status 0 }}
                         <span class="label label-primary">部署中...</span>

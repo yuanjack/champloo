@@ -42,7 +42,7 @@
                   {{if eq .EnableDeploy.Operator ""}}
                   <span class="build-status notstart"></span>
                   {{else}}
-                  <img src="/avatar/{{ .EnableDeploy.Operator }}.png?w=48" alt="{{ .EnableDeploy.Operator }}" width="24px"  height="24px" />&nbsp;&nbsp;{{ .EnableDeploy.Operator }}
+                  <img src="{{getavatar .EnableDeploy.Operator }}" alt="{{ .EnableDeploy.Operator }}" width="24px"  height="24px" />&nbsp;&nbsp;{{ .EnableDeploy.Operator }}
                   {{end}}
             </td>
             <td style="font-size: 13px;">{{ .EnableDeploy.CreatedAt | formatTime }}</td>

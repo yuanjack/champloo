@@ -18,7 +18,7 @@
         <table class="table">
         <thead>
         <tr>
-          <th style="width:5%">序号</th><th>服务器名</th><th>服务器IP</th><th>标签</th><th>最后心跳时间</th><th style="width:10%">操作</th>
+          <th style="width:5%">序号</th><th>服务器名</th><th>服务器IP</th><th>标签</th><th>最后心跳时间</th><th style="width:20%">操作</th>
         </tr>
         </thead>
         <tbody>
@@ -30,24 +30,24 @@
        <td>{{ .Tags }}</td>
        <td>{{ .LastHeatbeatTime | formatTime }}</td>
        <td>
-              <a  href="javascript:void(0)" class="edit" data-id="{{ .Id }}">编辑标签</a>&nbsp;&nbsp;
+              <a  href="javascript:void(0)" class="edit" data-id="{{ .Id }}"><i class="fa fa-pencil"></i>编辑标签</a>&nbsp;&nbsp;
               {{if .Disable }}
-              <a href="javascript:void(0)" class="toggle" data-id="{{ .Id }}">启用</a>&nbsp;&nbsp;
+              <a href="javascript:void(0)" class="toggle" data-id="{{ .Id }}"><i class="fa fa-check"></i>启用</a>&nbsp;&nbsp;
               {{else}}
-              <a href="javascript:void(0)" class="toggle" data-id="{{ .Id }}">停用</a>&nbsp;&nbsp;
+              <a href="javascript:void(0)" class="toggle" data-id="{{ .Id }}"><i class="fa fa-close"></i>停用</a>&nbsp;&nbsp;
               {{end}}
-              <a href="javascript:void(0)" class="delete" data-id="{{ .Id }}">删除</a>
+              <a href="javascript:void(0)" class="delete" data-id="{{ .Id }}"><i class="fa fa-trash-o"></i>删除</a>
         </td>
        </tr>
        <tr class="edit-tr"  style="display:none;">
        <td>{{ .Id }}</td>
        <td>{{ .Host }}</td>
        <td>{{ .Ip }}:{{ .Port }}</td>
-       <td><input value="{{ .Tags }}" >(以逗号","分隔多个)</td>
+       <td><input type="hidden" value="{{ .Tags }}"  class="tags">(以逗号","分隔多个)</td>
        <td>{{ .LastHeatbeatTime | formatTime }}</td>
        <td>
-               <a href="javascript:void(0)" class="cancel" data-id="{{ .Id }}">取消</a>&nbsp;&nbsp;
-              <a  href="javascript:void(0)" class="update" data-id="{{ .Id }}">更新</a>
+               <a href="javascript:void(0)" class="cancel" data-id="{{ .Id }}"><i class="fa fa-undo"></i>取消</a>&nbsp;&nbsp;
+              <a  href="javascript:void(0)" class="update" data-id="{{ .Id }}"><i class="fa fa-save"></i>更新</a>
 
         </td>
        </tr>
@@ -110,7 +110,7 @@
         $('.update').click(function() {
             $this = $(this);
              var id = $(this).attr('data-id');
-             var tags = $(this).closest('tr').find('input').val();
+             var tags = $(this).closest('tr').find('input.tags').val();
              tags = $.trim(tags.replace('，', ',').replace(' ', ''));
              $.ajax({
                           url: '/servers/'  + id,
@@ -120,7 +120,7 @@
                           success: function(data){
                             if (data.success) {
                               $this.closest('tr').prev().find('td').eq(3).html(tags);
-                              $(this).closest('tr').find('input').val(tags);
+                              $(this).closest('tr').find('input.tags').val(tags);
                               $this.closest('tr').find('.cancel').trigger('click');
                               notify('更新成功');
                             } else {
@@ -129,6 +129,8 @@
                           }
               });
         });
+
+
         $('.toggle').click(function() {
              $this = $(this);
              var id = $(this).attr('data-id');
@@ -153,6 +155,16 @@
                           }
               });
         });
+
+        $('input.tags').each(function(idx, n) {
+              var val = $(this).val();
+              var arr = [];
+              if (val != '') {
+                    arr = val.split(',')
+              }
+              $(this).select2({width: '400px', tags:arr});
+        });
+
 
     });
     </script>

@@ -18,31 +18,38 @@
                 <form class="form-horizontal" role="form">
                       <div class="form-group">
                         <label  class="col-sm-2 control-label">用户名</label>
-                        <div class="col-sm-10">
+                        <div class="col-sm-5">
                           <input  class="form-control"  value="{{ $.user.Name }}" name="name" readonly="readonly">
                           <input type="hidden" value="{{ $.user.Id }}" name="id">
                         </div>
                       </div>
                       <div class="form-group">
                         <label for="avatar" class="col-sm-2 control-label">头像</label>
-                        <div class="col-sm-10">
-                          <input type="email" class="form-control" id="avatar" name="avatar" value="{{ $.user.Avatar }}" placeholder="请填入外链头像地址，推荐图片大小为48x48">
+                        <div class="col-sm-5">
+                           <div style="margin:5px;">
+                           {{if eq $.user.Avatar ""}}
+                           <img id="preview" src="/avatar/{{ $.user.Name }}.png?w=48" class="gravatar-image" alt="{{ $.user.Name }}" width="38"  height="38" />
+                           {{else}}
+                            <img id="preview"  src="{{ $.user.Avatar }}.png?w=48" class="gravatar-image" alt="" width="38"  height="38" />
+                           {{end}}
+                          </div>
+                          <input  class="form-control" id="avatar" name="avatar" value="{{ $.user.Avatar }}" placeholder="请填入外链头像地址，推荐图片大小为48x48">
                         </div>
                       </div>
                       <div class="form-group">
                         <label for="email" class="col-sm-2 control-label">邮箱</label>
-                        <div class="col-sm-10">
+                        <div class="col-sm-5">
                           <input type="email" class="form-control" id="email" name="email" placeholder="邮箱地址" value="{{ $.user.Email }}">
                         </div>
                       </div>
                       <div class="form-group">
                         <label for="password" class="col-sm-2 control-label">密码</label>
-                        <div class="col-sm-10">
+                        <div class="col-sm-5">
                           <input type="password" class="form-control" id="password" name="password" value="{{ $.user.Password }}" >
                         </div>
                       </div>
                       <div class="form-group">
-                        <div class="col-sm-offset-2 col-sm-10">
+                        <div class="col-sm-offset-2 col-sm-5">
                           <div class="checkbox">
                             <label>
                               <input type="checkbox" name="isadmin" {{if $.user.IsAdmin}} checked="checked" {{end}}> 是否管理员
@@ -65,4 +72,7 @@
                               }
                   }, 'JSON');
           });
+            $('#avatar').change(function() {
+                  $('#preview').attr('src',  $(this).val());
+            });
 </script>

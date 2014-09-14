@@ -3,7 +3,6 @@ package main
 import (
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/go-martini/martini"
@@ -24,15 +23,7 @@ func EditUsers(req *http.Request, user User, r render.Render) {
 		sendFailMsg(r, "保存失败，用户名或密码不能为空.", "")
 		return
 	}
-	if user.Avatar != "" {
-		if !strings.HasSuffix(user.Avatar, ".jpg") &&
-			!strings.HasSuffix(user.Avatar, ".jpeg") &&
-			!strings.HasSuffix(user.Avatar, ".gif") &&
-			!strings.HasSuffix(user.Avatar, ".png") {
-			sendFailMsg(r, "保存失败，头像只支持gif,jpg,png格式.", "")
-			return
-		}
-	}
+
 	user.CreatedAt = time.Now()
 	err := db.Save(&user).Error
 	if user.Id > 0 {
