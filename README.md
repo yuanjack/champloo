@@ -10,7 +10,7 @@ A simple project for deploy php website.
 - Support svn & git
 - Easy to start
 
-- Installation
+## Installation
 
 - Get lastest version in [Release](https://github.com/cxfksword/champloo/releases) page. 
 - Install and start the web:
