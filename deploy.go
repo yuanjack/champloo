@@ -181,6 +181,34 @@ func executeDeploy(stage string, username string, params martini.Params, r rende
 		return
 	}
 
+	// 取commit日志
+	var oldDeploy Deploy
+	db.First(&oldDeploy, Deploy{SystemId: id, Stage: stage, Enable: true})
+	commitLogStr := ""
+	var commitLog CommitLog
+	if strings.Contains(conf.Repo, ".git") {
+		commitLog, _ = session.RetrieveGitCommitLog(currentDir)
+		session.IsComplete = true
+	} else {
+		commitLog, _ = session.RetrieveSvnCommitLog(currentDir, conf.UserName, conf.Password)
+		session.IsComplete = true
+	}
+	if commitLog.LogEntries != nil {
+		newRevision := false
+		for _, commit := range commitLog.LogEntries {
+			if commit.Revision == oldDeploy.Revision {
+				break
+			}
+
+			newRevision = true
+			commitLogStr += "r" + commit.Revision + "    " + commit.Msg + "\n"
+		}
+		if len(commitLog.LogEntries) > 0 && newRevision {
+			deploy.Revision = commitLog.LogEntries[0].Revision
+			deploy.CommitLog = commitLogStr
+		}
+	}
+
 	// 去掉旧的部署的启用状态
 	db.Model(Deploy{}).Where(Deploy{SystemId: id, Stage: stage, Enable: true}).Update(map[string]interface{}{"enable": false})
 
@@ -331,6 +359,32 @@ func executeDeployUpdate(stage string, username string, params martini.Params, r
 		return
 	}
 
+	// 取commit日志
+	commitLogStr := ""
+	var commitLog CommitLog
+	if strings.Contains(conf.Repo, ".git") {
+		commitLog, _ = session.RetrieveGitCommitLog(currentDir)
+		session.IsComplete = true
+	} else {
+		commitLog, _ = session.RetrieveSvnCommitLog(currentDir, conf.UserName, conf.Password)
+		session.IsComplete = true
+	}
+	if commitLog.LogEntries != nil {
+		newRevision := false
+		for _, commit := range commitLog.LogEntries {
+			if commit.Revision == deploy.Revision {
+				break
+			}
+
+			newRevision = true
+			commitLogStr += "r" + commit.Revision + "    " + commit.Msg + "\n"
+		}
+		if len(commitLog.LogEntries) > 0 && newRevision {
+			deploy.Revision = commitLog.LogEntries[0].Revision
+			deploy.CommitLog = commitLogStr
+		}
+	}
+
 	deploy.Stage = stage
 	deploy.Operator = string(username)
 	deploy.Status = 1
@@ -434,8 +488,14 @@ func GetDeployLog(params martini.Params, r render.Render) {
 	var deploy Deploy
 	db.First(&deploy, id)
 
+	output := ""
+	if deploy.CommitLog != "" {
+		output += "<span class=\"tip\">[变更] 版本提交历史log：\n      " +
+			strings.Replace(deploy.CommitLog, "\n", "\n      ", -1) +
+			"</span>\n"
+	}
 	data := map[string]interface{}{}
-	data["output"] = deploy.Output
+	data["output"] = output + deploy.Output
 	r.JSON(200, data)
 
 }

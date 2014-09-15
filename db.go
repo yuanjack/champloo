@@ -58,6 +58,8 @@ type Deploy struct {
 	Status      int
 	Output      string
 	Enable      bool `sql:"not null"` // 是否当前使用版本
+	Revision    string
+	CommitLog   string
 	CreatedAt   time.Time
 }
 

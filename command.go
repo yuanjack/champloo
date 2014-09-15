@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -141,8 +142,10 @@ func (s *ShellSession) Output() string {
 			break
 		}
 
-		output += fmt.Sprintln("<i></i><span>" + cmdstr + "</span>")
-		output += fmt.Sprintln(outputstr)
+		if cmdstr != "" {
+			output += fmt.Sprintln("<i></i><span>" + cmdstr + "</span>")
+			output += fmt.Sprintln(outputstr)
+		}
 		if errorstr != "" {
 			output += fmt.Sprintln(errorstr)
 		}
@@ -182,6 +185,102 @@ func (s *ShellSession) Output() string {
 	}
 
 	return output
+}
+
+// 取git最近5个提交日志
+func (s *ShellSession) RetrieveGitCommitLog(currentDir string) (CommitLog, error) {
+	cmd := `
+            cd ` + currentDir + `
+            git log --pretty=format:"%h@@@@%an@@@@%s@@@@%ad" -5
+             `
+	c := command{
+		cmd:     cmd,
+		canHalt: true,
+	}
+
+	output := ""
+	for server, _ := range s.ExecuteResult {
+		// 已停用服务器忽略
+		if server.Disable {
+			continue
+		}
+		c.Run(server.Ip, server.Port)
+		if c.err == nil {
+			output = c.output
+		} else {
+			fmt.Println(c.err)
+		}
+		break
+	}
+
+	var commitLog CommitLog
+	var err error
+	if output != "" {
+		// 返回结果是分隔格式
+		commitLog.LogEntries = []CommitLogEntry{}
+		output = strings.TrimSpace(output)
+		lines := strings.Split(output, "\n")
+		for _, line := range lines {
+			arr := strings.Split(line, "@@@@")
+			commitDate, err := time.Parse("Mon Jan 2 15:04:05 2006 -0700", arr[3])
+			if err == nil {
+				commitLog.LogEntries = append(commitLog.LogEntries, CommitLogEntry{
+					Revision: arr[0],
+					Author:   arr[1],
+					Msg:      arr[2],
+					Date:     commitDate,
+				})
+			} else {
+				fmt.Println(err)
+				commitLog.LogEntries = append(commitLog.LogEntries, CommitLogEntry{
+					Revision: arr[0],
+					Author:   arr[1],
+					Msg:      arr[2],
+				})
+			}
+		}
+	}
+
+	return commitLog, err
+}
+
+// 取svn最近5个提交日志
+func (s *ShellSession) RetrieveSvnCommitLog(currentDir string, username string, password string) (CommitLog, error) {
+	cmd := `
+            cd %s
+            svn log -l 5 --xml  --username %s --password %s --no-auth-cache
+             `
+	c := command{
+		cmd:     fmt.Sprintf(cmd, currentDir, username, password),
+		canHalt: true,
+	}
+
+	output := ""
+	for server, _ := range s.ExecuteResult {
+		// 已停用服务器忽略
+		if server.Disable {
+			continue
+		}
+		c.Run(server.Ip, server.Port)
+		if c.err == nil {
+			output = c.output
+		} else {
+			fmt.Println(c.err)
+		}
+		break
+	}
+
+	var commitLog CommitLog
+	var err error
+	if output != "" {
+		xmloutput := strings.TrimSpace(output)
+		err = xml.Unmarshal([]byte(xmloutput), &commitLog)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+
+	return commitLog, err
 }
 
 type ShellCommand struct {
@@ -526,4 +625,15 @@ func (c *command) Run(ip string, port int) {
 type JsonCommand struct {
 	Dir string `json:"dir"`
 	Cmd string `json:"cmd"`
+}
+
+type CommitLog struct {
+	LogEntries []CommitLogEntry `xml:"logentry"`
+}
+
+type CommitLogEntry struct {
+	Revision string    `xml:"revision,attr"`
+	Author   string    `xml:"author"`
+	Date     time.Time `xml:"date"`
+	Msg      string    `xml:"msg"`
 }

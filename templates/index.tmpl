@@ -23,6 +23,11 @@
             <td>{{ .Name }}</td>
             <td><span class="label label-info">{{ .EnableDeploy.Version }}</span></td>
             <td>
+                    <i class="fa fa-code-fork"></i>
+                    <span style="font-size: 13px;">r{{ .EnableDeploy.Revision }}</span>
+            </td>
+            <td>
+
                     {{if eq .EnableDeploy.Id 0 }}
                           <span class="build-status notstart"></span>
                     {{else}}
