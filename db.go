@@ -69,7 +69,7 @@ type User struct {
 	Password  string `form:"password"`
 	Avatar    string `form:"avatar"`
 	Email     string `form:"email"`
-	IsAdmin   bool   `sql:"not null" form:"isadmin"`
+	IsAdmin   bool   `form:"isadmin"`
 	CreatedAt time.Time
 }
 
