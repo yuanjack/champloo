@@ -65,6 +65,13 @@ func main() {
 						return user.Avatar
 					}
 				},
+				"checkadmin": func(args ...interface{}) bool {
+					name := args[0].(string)
+					var user User
+					err := db.First(&user, User{Name: name}).Error
+					fmt.Println(user)
+					return (err == nil && user.IsAdmin || name == "admin")
+				},
 				"unescaped": func(args ...interface{}) template.HTML {
 					return template.HTML(args[0].(string))
 				},

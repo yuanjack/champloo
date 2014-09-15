@@ -34,7 +34,7 @@
         <div class="navbar-collapse collapse">
           {{if ne .username "" }}
           <ul class="nav navbar-nav navbar-right">
-            {{if eq .username "admin"}}
+            {{if checkadmin .username}}
             <li><a href="/users">用户管理</a></li>
             {{end}}
             <li>
