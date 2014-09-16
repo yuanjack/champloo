@@ -28,7 +28,7 @@ func NewShellSession(servers []Server, cmd ShellCommand, deployId int) *ShellSes
 	new.ExecuteResult = map[Server]ShellCommand{}
 	new.DeployId = deployId
 	for _, server := range servers {
-		new.ExecuteResult[server] = cmd
+		new.ExecuteResult[server] = cmd.Duplicate()
 	}
 
 	return &new
@@ -543,6 +543,24 @@ func (s *ShellCommand) Intro(intro string) *ShellCommand {
 		s.cmds[len(s.cmds)-1].intro = intro
 	}
 	return s
+}
+
+func (s *ShellCommand) Duplicate() ShellCommand {
+	sh := NewShellCommand()
+	for _, c := range s.cmds {
+		sh.cmds = append(sh.cmds, command{
+			cmd:        c.cmd,
+			intro:      c.intro,
+			output:     c.output,
+			hasExecute: c.hasExecute,
+			success:    c.success,
+			canHalt:    c.canHalt,
+			err:        c.err,
+			workdir:    c.workdir,
+		})
+	}
+
+	return *sh
 }
 
 // 对shell命令的封装
