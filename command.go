@@ -468,14 +468,16 @@ func (s *ShellCommand) Shared(srcPath string, sharedDir string) *ShellCommand {
                             exit 1
                     fi
 
-                    cp -a %s %s
+                    cp -Rpf  --preserve=all %s %s
+                else
+                    cp -Rpn  --preserve=all %s %s
                 fi
 
                 rm -rf %s
                 ln -s %s %s
                 `
 	c := command{
-		cmd:     fmt.Sprintf(cmd, dest, src, src, src, shared, src, dest, src),
+		cmd:     fmt.Sprintf(cmd, dest, src, src, src, shared, src, shared, src, dest, src),
 		canHalt: true,
 	}
 	s.cmds = append(s.cmds, c)
