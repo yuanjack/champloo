@@ -79,7 +79,7 @@ func (s *ShellSession) ParallelRun() {
 			wg.Add(1)
 			allServerDisable = false
 			srv := server
-			cmd := shell.cmds[i]
+			cmd := &shell.cmds[i]
 			go func() {
 				cmd.Run(srv.Ip, srv.Port)
 				if cmd.Halt() {
@@ -109,6 +109,7 @@ func (s *ShellSession) Cancel() {
 
 func (s *ShellSession) Output() string {
 	output := ""
+	isCompelete := s.IsComplete
 
 	// 命令都执行成功时，只显示最后一台服务器的输出信息
 	// 命令出错时，显示所有出错服务器输出信息
@@ -177,7 +178,7 @@ func (s *ShellSession) Output() string {
 
 		output = "<span class='tip'>" + serverstr + disablestr + "</span>\n\n" + output
 
-		if s.IsComplete {
+		if isCompelete {
 			if s.Success {
 				output += "\n\n<span class='success'>已成功部署更新 :)</span>"
 			} else {
@@ -286,12 +287,12 @@ func (s *ShellSession) RetrieveSvnCommitLog(currentDir string, username string, 
 }
 
 type ShellCommand struct {
-	cmds []*command
+	cmds []command
 }
 
 func NewShellCommand() *ShellCommand {
 	new := ShellCommand{}
-	new.cmds = []*command{}
+	new.cmds = []command{}
 	return &new
 }
 
@@ -304,7 +305,7 @@ func (s *ShellCommand) Mkdir(dir string) *ShellCommand {
 		cmd:     fmt.Sprintf("mkdir -p %s", dir),
 		canHalt: true,
 	}
-	s.cmds = append(s.cmds, &c)
+	s.cmds = append(s.cmds, c)
 	return s
 }
 
@@ -313,7 +314,7 @@ func (s *ShellCommand) Rm(path string) *ShellCommand {
 		cmd:     fmt.Sprintf("rm -rf %s", path),
 		canHalt: true,
 	}
-	s.cmds = append(s.cmds, &c)
+	s.cmds = append(s.cmds, c)
 	return s
 }
 
@@ -330,7 +331,7 @@ func (s *ShellCommand) Copy(src string, dest string) *ShellCommand {
 		cmd:     fmt.Sprintf(cmd, src, src, dest, src),
 		canHalt: true,
 	}
-	s.cmds = append(s.cmds, &c)
+	s.cmds = append(s.cmds, c)
 	return s
 }
 
@@ -344,7 +345,7 @@ func (s *ShellCommand) CopyNoHalt(src string, dest string) *ShellCommand {
 		cmd:     fmt.Sprintf(cmd, src, src, dest),
 		canHalt: false,
 	}
-	s.cmds = append(s.cmds, &c)
+	s.cmds = append(s.cmds, c)
 	return s
 }
 
@@ -353,7 +354,7 @@ func (s *ShellCommand) Git(dest string, repo string) *ShellCommand {
 		cmd:     fmt.Sprintf("git clone %s %s", repo, dest),
 		canHalt: true,
 	}
-	s.cmds = append(s.cmds, &c)
+	s.cmds = append(s.cmds, c)
 	return s
 }
 
@@ -370,7 +371,7 @@ func (s *ShellCommand) GitCopyUpdate(currentDir string, dest string, repo string
 		cmd:     fmt.Sprintf(cmd, currentDir, dest, repo, dest),
 		canHalt: true,
 	}
-	s.cmds = append(s.cmds, &c)
+	s.cmds = append(s.cmds, c)
 	return s
 }
 
@@ -387,7 +388,7 @@ func (s *ShellCommand) GitUpdate(currentDir string, dest string, repo string) *S
 		cmd:     fmt.Sprintf(cmd, currentDir, currentDir, repo, dest),
 		canHalt: true,
 	}
-	s.cmds = append(s.cmds, &c)
+	s.cmds = append(s.cmds, c)
 	return s
 }
 
@@ -396,7 +397,7 @@ func (s *ShellCommand) Svn(dest string, repo string, username string, password s
 		cmd:     fmt.Sprintf("svn checkout --username %s --password %s --no-auth-cache %s %s", username, password, repo, dest),
 		canHalt: true,
 	}
-	s.cmds = append(s.cmds, &c)
+	s.cmds = append(s.cmds, c)
 	return s
 }
 
@@ -413,7 +414,7 @@ func (s *ShellCommand) SvnCopyUpdate(currentDir string, dest string, repo string
 		cmd:     fmt.Sprintf(cmd, currentDir, dest, username, password, username, password, repo, dest),
 		canHalt: true,
 	}
-	s.cmds = append(s.cmds, &c)
+	s.cmds = append(s.cmds, c)
 	return s
 }
 
@@ -430,7 +431,7 @@ func (s *ShellCommand) SvnUpdate(currentDir string, dest string, repo string, us
 		cmd:     fmt.Sprintf(cmd, currentDir, currentDir, username, password, username, password, repo, dest),
 		canHalt: true,
 	}
-	s.cmds = append(s.cmds, &c)
+	s.cmds = append(s.cmds, c)
 	return s
 }
 
@@ -457,7 +458,7 @@ func (s *ShellCommand) Shared(srcPath string, sharedDir string) *ShellCommand {
 		cmd:     fmt.Sprintf(cmd, dest, src, src, src, shared, src, dest, src),
 		canHalt: true,
 	}
-	s.cmds = append(s.cmds, &c)
+	s.cmds = append(s.cmds, c)
 	return s
 }
 
@@ -482,7 +483,7 @@ func (s *ShellCommand) ClearBackup(dir string, leaveNum int) *ShellCommand {
 		cmd:     fmt.Sprintf(cmd, dir, leaveNum),
 		canHalt: true,
 	}
-	s.cmds = append(s.cmds, &c)
+	s.cmds = append(s.cmds, c)
 	return s
 }
 
@@ -497,7 +498,7 @@ func (s *ShellCommand) ExistDir(dir string) *ShellCommand {
 		cmd:     fmt.Sprintf(cmd, dir, dir),
 		canHalt: true,
 	}
-	s.cmds = append(s.cmds, &c)
+	s.cmds = append(s.cmds, c)
 	return s
 }
 
@@ -514,7 +515,7 @@ func (s *ShellCommand) Rollback(src string, dest string) *ShellCommand {
 		cmd:     fmt.Sprintf(cmd, src, src, src, dest),
 		canHalt: true,
 	}
-	s.cmds = append(s.cmds, &c)
+	s.cmds = append(s.cmds, c)
 	return s
 }
 
@@ -524,7 +525,7 @@ func (s *ShellCommand) Exec(cmd string, workdir string) *ShellCommand {
 		workdir: workdir,
 		canHalt: true,
 	}
-	s.cmds = append(s.cmds, &c)
+	s.cmds = append(s.cmds, c)
 	return s
 }
 
@@ -533,7 +534,7 @@ func (s *ShellCommand) Ln(src string, dest string) *ShellCommand {
 		cmd:     fmt.Sprintf("ln -sfn  %s %s", src, dest),
 		canHalt: true,
 	}
-	s.cmds = append(s.cmds, &c)
+	s.cmds = append(s.cmds, c)
 	return s
 }
 
