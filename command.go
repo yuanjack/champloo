@@ -470,7 +470,7 @@ func (s *ShellCommand) Shared(srcPath string, sharedDir string) *ShellCommand {
 
                     cp -Rpf  --preserve=all %s %s
                 else
-                    cp -Rpn  --preserve=all %s %s
+                    yes n|cp -RLi --preserve=all %s %s &>/dev/null
                 fi
 
                 rm -rf %s
