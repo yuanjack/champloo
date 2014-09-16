@@ -190,6 +190,26 @@ func (s *ShellSession) Output() string {
 	return output
 }
 
+// 失败时删除已部署的所有文件
+func (s *ShellSession) ClearDeploy(dest string) {
+	c := command{
+		cmd:     fmt.Sprintf("rm -rf %s", dest),
+		canHalt: true,
+	}
+
+	for server, _ := range s.ExecuteResult {
+		// 已停用服务器忽略
+		if server.Disable {
+			continue
+		}
+
+		c.Run(server.Ip, server.Port)
+		if c.err != nil {
+			fmt.Println(c.err)
+		}
+	}
+}
+
 // 取git最近5个提交日志
 func (s *ShellSession) RetrieveGitCommitLog(currentDir string) (CommitLog, error) {
 	cmd := `

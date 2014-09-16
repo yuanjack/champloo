@@ -170,6 +170,9 @@ func executeDeploy(stage string, username string, params martini.Params, r rende
 	startTime := time.Now()
 	session.ParallelRun()
 	if !session.Success {
+		// 删除部署的文件夹
+		session.ClearDeploy(versionDir)
+
 		deploy.Stage = stage
 		deploy.Operator = string(username)
 		deploy.Status = -1
