@@ -452,13 +452,23 @@ func DeployProgress(params martini.Params, r render.Render) {
 
 	if found {
 		data := map[string]interface{}{}
+		isComplete := false
 		if s.IsComplete {
-			data["output"], _ = getDeployLog(s.DeployId)
-		} else {
-			data["output"] = s.Output()
+			output, status := getDeployLog(s.DeployId)
+			if status != 0 {
+				isComplete = true
+				data["output"] = output
+				data["complete"] = true
+				data["success"] = s.Success
+			}
 		}
-		data["complete"] = s.IsComplete
-		data["success"] = s.Success
+
+		if !isComplete {
+			data["output"] = s.Output()
+			data["complete"] = false
+			data["success"] = false
+		}
+
 		r.JSON(200, data)
 	} else {
 		data := map[string]interface{}{}
@@ -478,11 +488,11 @@ func ShowDeployLog(params martini.Params, r render.Render) {
 
 }
 
-func getDeployLog(id int) (output string, success bool) {
+func getDeployLog(id int) (output string, status int) {
 	var deploy Deploy
 	db.First(&deploy, id)
 
-	success = deploy.Status == 1
+	status = deploy.Status
 
 	if deploy.CommitLog != "" {
 		output += "<span class=\"tip\">[变更] 版本提交历史log：\n      " +
