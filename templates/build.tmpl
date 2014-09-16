@@ -166,7 +166,15 @@
           $('.viewlog').click(function() {
                 var id = $(this).attr('data-id');
                 $.getJSON('/deploy/' + id + '/log', function(data) {
-                         $('#deploy-shell').html(data.output).show();
+                        $('#deploy-shell').html(data.output).show();
+
+                        $('.alert-success').hide();
+                        $('.alert-danger').hide();
+                        if (data.success) {
+                            $('.alert-success').show();
+                        } else {
+                            $('.alert-danger').show();
+                        }
                   });
           });
           $('.cancel').click(function() {
@@ -236,6 +244,14 @@
                      if (data.complete) {
                           clearInterval(refreshInterval);
                           refreshInterval = null;
+
+                          if (data.output != '') {
+                              if (data.success) {
+                                  $('.alert-success').show();
+                              } else {
+                                  $('.alert-danger').show();
+                              }
+                          }
                      }
               });
           }, interval);

@@ -13,6 +13,7 @@ import (
 type ShellSession struct {
 	SessionId      string
 	CommandCount   int
+	DeployId       int
 	ExecuteResult  map[Server]ShellCommand
 	IsComplete     bool // 是否全部执行完成
 	IsCancel       bool //  是否已取消
@@ -20,11 +21,12 @@ type ShellSession struct {
 	ExecutedCmdNum int // 已执行的命令数
 }
 
-func NewShellSession(servers []Server, cmd ShellCommand) *ShellSession {
+func NewShellSession(servers []Server, cmd ShellCommand, deployId int) *ShellSession {
 	new := ShellSession{}
 	new.CommandCount = cmd.Count()
 	new.SessionId = time.Now().Format("s_20060102150405")
 	new.ExecuteResult = map[Server]ShellCommand{}
+	new.DeployId = deployId
 	for _, server := range servers {
 		new.ExecuteResult[server] = cmd
 	}
@@ -570,7 +572,11 @@ func (c *command) Success() bool {
 	return c.success
 }
 func (c *command) Halt() bool {
-	return !c.success && c.canHalt
+	if c.canHalt {
+		return !c.success || c.err != nil
+	}
+
+	return false
 }
 
 func (c *command) Error() error {
@@ -599,12 +605,14 @@ func (c *command) Run(ip string, port int) {
 		c.hasExecute = true
 		c.err = err
 		c.output = err.Error()
+		c.success = false
 		return
 	}
 	if statusCode != 200 {
 		c.hasExecute = true
 		c.err = fmt.Errorf("执行脚本请求出错.%s 状态码：%d 内容：%s", url, statusCode, body)
 		c.output = c.err.Error()
+		c.success = false
 		return
 	}
 	var result ActionMessage
@@ -612,6 +620,7 @@ func (c *command) Run(ip string, port int) {
 	if err != nil {
 		c.hasExecute = true
 		c.err = err
+		c.success = false
 		return
 	}
 	c.hasExecute = true

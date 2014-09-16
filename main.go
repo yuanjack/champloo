@@ -139,7 +139,7 @@ func main() {
 	m.Post("/deploy/dev/:id", ExecuteDeployDev)
 	m.Post("/deploy/prod/:id", ExecuteDeployProd)
 	m.Get("/deploy/:id/progress", DeployProgress)
-	m.Get("/deploy/:id/log", GetDeployLog)
+	m.Get("/deploy/:id/log", ShowDeployLog)
 	m.Post("/deploy/:id/cancel", CancelDeploy)
 	m.Post("/deploy/:id/rollback", ExecuteRollback)
 	m.Get("/config", NewSystem)

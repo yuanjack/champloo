@@ -162,7 +162,7 @@ func executeDeploy(stage string, username string, params martini.Params, r rende
 	// 取对应该tag的所有服务器
 	servers := getTagServers(tags)
 
-	session := NewShellSession(servers, *cmds)
+	session := NewShellSession(servers, *cmds, deploy.Id)
 	mutex.Lock()
 	sessions[id] = session
 	mutex.Unlock()
@@ -182,32 +182,9 @@ func executeDeploy(stage string, username string, params martini.Params, r rende
 	}
 
 	// 取commit日志
-	var oldDeploy Deploy
-	db.First(&oldDeploy, Deploy{SystemId: id, Stage: stage, Enable: true})
-	commitLogStr := ""
-	var commitLog CommitLog
-	if strings.Contains(conf.Repo, ".git") {
-		commitLog, _ = session.RetrieveGitCommitLog(currentDir)
-		session.IsComplete = true
-	} else {
-		commitLog, _ = session.RetrieveSvnCommitLog(currentDir, conf.UserName, conf.Password)
-		session.IsComplete = true
-	}
-	if commitLog.LogEntries != nil {
-		newRevision := false
-		for _, commit := range commitLog.LogEntries {
-			if commit.Revision == oldDeploy.Revision {
-				break
-			}
-
-			newRevision = true
-			commitLogStr += "r" + commit.Revision + "    " + commit.Msg + "\n"
-		}
-		if len(commitLog.LogEntries) > 0 && newRevision {
-			deploy.Revision = commitLog.LogEntries[0].Revision
-			deploy.CommitLog = commitLogStr
-		}
-	}
+	revision, commitLog := getCommitLog(session, id, stage, conf, currentDir)
+	deploy.Revision = revision
+	deploy.CommitLog = commitLog
 
 	// 去掉旧的部署的启用状态
 	db.Model(Deploy{}).Where(Deploy{SystemId: id, Stage: stage, Enable: true}).Update(map[string]interface{}{"enable": false})
@@ -339,7 +316,7 @@ func executeDeployUpdate(stage string, username string, params martini.Params, r
 	// 取对应该tag的所有服务器
 	servers := getTagServers(tags)
 
-	session := NewShellSession(servers, *cmds)
+	session := NewShellSession(servers, *cmds, deploy.Id)
 	mutex.Lock()
 	sessions[id] = session
 	mutex.Unlock()
@@ -360,31 +337,11 @@ func executeDeployUpdate(stage string, username string, params martini.Params, r
 	}
 
 	// 取commit日志
-	commitLogStr := ""
-	var commitLog CommitLog
-	if strings.Contains(conf.Repo, ".git") {
-		commitLog, _ = session.RetrieveGitCommitLog(currentDir)
-		session.IsComplete = true
-	} else {
-		commitLog, _ = session.RetrieveSvnCommitLog(currentDir, conf.UserName, conf.Password)
-		session.IsComplete = true
-	}
-	if commitLog.LogEntries != nil {
-		newRevision := false
-		for _, commit := range commitLog.LogEntries {
-			if commit.Revision == deploy.Revision {
-				break
-			}
+	revision, commitLog := getCommitLog(session, id, stage, conf, currentDir)
+	deploy.Revision = revision
+	deploy.CommitLog = commitLog
 
-			newRevision = true
-			commitLogStr += "r" + commit.Revision + "    " + commit.Msg + "\n"
-		}
-		if len(commitLog.LogEntries) > 0 && newRevision {
-			deploy.Revision = commitLog.LogEntries[0].Revision
-			deploy.CommitLog = commitLogStr
-		}
-	}
-
+	// 保存
 	deploy.Stage = stage
 	deploy.Operator = string(username)
 	deploy.Status = 1
@@ -439,7 +396,7 @@ func ExecuteRollback(username string, params martini.Params, r render.Render) {
 	// 取对应该tag的所有服务器
 	servers := getTagServers(tags)
 
-	session := NewShellSession(servers, *cmds)
+	session := NewShellSession(servers, *cmds, deployId)
 	mutex.Lock()
 	sessions[id] = session
 	mutex.Unlock()
@@ -471,33 +428,46 @@ func DeployProgress(params martini.Params, r render.Render) {
 
 	if found {
 		data := map[string]interface{}{}
-		data["output"] = s.Output()
+		if s.IsComplete {
+			data["output"], _ = getDeployLog(s.DeployId)
+		} else {
+			data["output"] = s.Output()
+		}
 		data["complete"] = s.IsComplete
+		data["success"] = s.Success
 		r.JSON(200, data)
 	} else {
 		data := map[string]interface{}{}
 		data["output"] = ""
 		data["complete"] = true
+		data["success"] = false
 		r.JSON(200, data)
 	}
 }
 
-func GetDeployLog(params martini.Params, r render.Render) {
+func ShowDeployLog(params martini.Params, r render.Render) {
 	id, _ := strconv.Atoi(params["id"])
 
+	data := map[string]interface{}{}
+	data["output"], data["success"] = getDeployLog(id)
+	r.JSON(200, data)
+
+}
+
+func getDeployLog(id int) (output string, success bool) {
 	var deploy Deploy
 	db.First(&deploy, id)
 
-	output := ""
+	success = deploy.Status == 1
+
 	if deploy.CommitLog != "" {
 		output += "<span class=\"tip\">[变更] 版本提交历史log：\n      " +
 			strings.Replace(deploy.CommitLog, "\n", "\n      ", -1) +
 			"</span>\n"
 	}
-	data := map[string]interface{}{}
-	data["output"] = output + deploy.Output
-	r.JSON(200, data)
+	output = output + deploy.Output
 
+	return
 }
 
 func CancelDeploy(params martini.Params, r render.Render) {
@@ -525,6 +495,37 @@ func CancelDeploy(params martini.Params, r render.Render) {
 	sendSuccessMsg(r, "取消部署成功.")
 	return
 
+}
+
+func getCommitLog(session *ShellSession, id int, stage string, conf SystemConfig, currentDir string) (revision string, commitLogStr string) {
+	var oldDeploy Deploy
+	db.First(&oldDeploy, Deploy{SystemId: id, Stage: stage, Enable: true})
+
+	var commitLog CommitLog
+	if strings.Contains(conf.Repo, ".git") {
+		commitLog, _ = session.RetrieveGitCommitLog(currentDir)
+		session.IsComplete = true
+	} else {
+		commitLog, _ = session.RetrieveSvnCommitLog(currentDir, conf.UserName, conf.Password)
+		session.IsComplete = true
+	}
+	if commitLog.LogEntries != nil {
+		for _, commit := range commitLog.LogEntries {
+			if commit.Revision == oldDeploy.Revision {
+				break
+			}
+
+			commitLogStr += "r" + commit.Revision + "    " + commit.Msg + "\n"
+		}
+		if len(commitLog.LogEntries) > 0 {
+			revision = commitLog.LogEntries[0].Revision
+			if commitLogStr == "" {
+				commitLogStr = "r" + commitLog.LogEntries[0].Revision + "  " + commitLog.LogEntries[0].Msg + "\n"
+			}
+		}
+	}
+
+	return
 }
 
 func isDeploying(systemid int) bool {
