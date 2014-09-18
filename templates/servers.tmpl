@@ -5,8 +5,9 @@
           <span class="navbar-brand" >服务器列表</span>
         </div>
         <div class="navbar-collapse collapse">
-          <ul class="nav navbar-nav navbar-right" style="margin-top:10px">
-            <li><input id="search" placeholder="搜索"></li>
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="https://raw.githubusercontent.com/cxfksword/champloo-client/master/install.sh" target="_blank"><i class="fa fa-download"></i>安装Agent脚本</a></li>
+            <li><input id="search" placeholder="搜索" style="margin-top:10px"></li>
           </ul>
         </div>
       </div>
@@ -23,7 +24,7 @@
         </thead>
         <tbody>
        {{range .servers}}
-       <tr class="{{getServerStatusClass .LastHeatbeatTime .Disable}}">
+       <tr class="view-tr {{getServerStatusClass .LastHeatbeatTime .Disable}}">
        <td>{{ .Id }}</td>
        <td>{{ .Host }}</td>
        <td>{{ .Ip }}:{{ .Port }}</td>
@@ -61,7 +62,7 @@
     $(function () {
         $('#search').on('keyup', function(){
           var keyword = $(this).val();
-          $('#content table>tbody tr').each(function(idx, n){
+          $('#content table>tbody .view-tr').each(function(idx, n){
             var host = $(n).find('td').eq(1).text();
             var ip = $(n).find('td').eq(2).text();
             if (host.indexOf(keyword) >= 0 || ip.indexOf(keyword) >= 0) {
