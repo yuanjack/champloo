@@ -271,7 +271,7 @@ func (s *ShellSession) RetrieveGitCommitLog(currentDir string) (CommitLog, error
 func (s *ShellSession) RetrieveSvnCommitLog(currentDir string, username string, password string) (CommitLog, error) {
 	cmd := `
             cd %s
-            svn log -l 5 --xml  --username %s --password %s --no-auth-cache
+            svn log --limit 5 --xml  --username %s --password %s --no-auth-cache
              `
 	c := command{
 		cmd:     fmt.Sprintf(cmd, currentDir, username, password),
