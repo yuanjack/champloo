@@ -30,7 +30,7 @@
                            {{if eq $.user.Avatar ""}}
                            <img id="preview" src="/avatar/{{ $.user.Name }}.png?w=48" class="gravatar-image" alt="{{ $.user.Name }}" width="38"  height="38" />
                            {{else}}
-                            <img id="preview"  src="{{ $.user.Avatar }}.png?w=48" class="gravatar-image" alt="" width="38"  height="38" />
+                            <img id="preview"  src="{{ $.user.Avatar }}" class="gravatar-image" alt="" width="38"  height="38" />
                            {{end}}
                           </div>
                           <input  class="form-control" id="avatar" name="avatar" value="{{ $.user.Avatar }}" placeholder="请填入外链头像地址，推荐图片大小为48x48">
